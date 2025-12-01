@@ -36,6 +36,7 @@ num_frames = int(os.getenv("HANDWASH_NUM_FRAMES", 5))
 suffix = os.getenv("HANDWASH_SUFFIX", "")
 pretrained_model_path = os.getenv("HANDWASH_PRETRAINED_MODEL", "")
 num_extra_layers = int(os.getenv("HANDWASH_EXTRA_LAYERS", 0))
+log_dir = os.getenv("HANDWASH_TENSORBOARD_LOGDIR", "")
 
 # data augmentation
 data_augmentation = tf.keras.Sequential([
@@ -244,12 +245,18 @@ def fit_model(name, model, train_ds, val_ds, test_ds, weights_dict):
                          verbose=1, save_freq='epoch',
                          filepath=name+'.{epoch:02d}-{val_accuracy:.2f}.h5')
 
+    callbacks = [es]
+    if len(log_dir):
+        callbacks.append(tf.keras.callbacks.TensorBoard(log_dir=log_dir,
+                                                        histogram_freq=1,
+                                                        profile_batch='5,10'))
+
     print("fitting the model...")
     history = model.fit(train_ds,
                         epochs=num_epochs,
                         validation_data=val_ds,
                         class_weight=weights_dict,
-                        callbacks=[es]) # add mc to save after each epoch
+                        callbacks=callbacks) # add mc to save after each epoch
 
     model.save(name + "final-model")
 
