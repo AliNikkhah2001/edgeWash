@@ -1,101 +1,39 @@
-# Hand washing movement classification
+# Handwashing Research Hub
 
-This repository contains code for hand washing movement classification based on the six key movements defined by the World Health Organization (WHO).
+Aggregated code, papers, datasets, models, and experiment ideas for automated handwashing assessment.
 
-The work has been done as part of the projects:
+## Structure
+- `code/`: cloned codebases and pipelines
+- `papers/`: papers with `summary.md`, `tags.md`, and `paper.pdf`
+- `datasets/`: storage location for raw/processed datasets (gitignored)
+- `models/`: exported weights and model cards
+- `evaluation/`: benchmarks and result artifacts
+- `ideas/`: future experiment notes and design sketches
 
-* "Integration of reliable technologies for protection against Covid-19 in healthcare and high-risk areas", project No. VPP-COVID-2020/1-0004.
-* Latvian Council of Science project: “Automated hand washing quality control and quality evaluation system with real-time feedback”, No: lzp-2020/2-0309
+## Codebases
+- **EdgeWash (WHO hand-washing movement classification)** (`code/edgewash`) — source: https://github.com/AliNikkhah2001/edgeWash
+- **Hand-wash compliance detection with YOLO** (`code/hand-wash-compliance-yolo`) — source: https://github.com/dpt-xyz/hand-wash-compliance-yolo
+- **HandWash (surgical hand-rub recognition with multimodal cues)** (`code/huiwen-HandWash`) — source: https://github.com/huiwen99/HandWash
+- **Synthetic hand-washing data generation** (`code/synthetic-hand-washing`) — source: https://github.com/r-ozakar/synthetic-hand-washing
 
+## Papers
+- **Hand-Hygiene Activity Recognition in Egocentric Video (MMSP 2019)** (`papers/2019-mmsp-chengzhang`) — tags: egocentric-video, handwashing, temporal-detection, two-stream-cnn, food-safety: Two-stage pipeline for detecting hand-hygiene actions in egocentric videos from food-manufacturing environments. Temporal localization uses motion and hand-mask cues, followed by a two-stream CNN with search to classify actions, reaching ~80% detection accuracy on a 100-participant dataset.
+- **Designing a Computer-Vision Application: Hand-Hygiene Assessment in an Open-Room Environment (J. Imaging 2021)** (`papers/2021-jimaging-chengzhang`) — tags: handwashing, deployment, dataset-design, open-world, computer-vision: Case study of deploying a hand-hygiene assessment system in an open-room setting. Discusses dataset design, environmental challenges, and end-to-end engineering considerations for reliable step recognition beyond controlled lab conditions.
+- **Hand Hygiene Assessment via Joint Step Segmentation and Key Action Scorer (2023)** (`papers/2022-arxiv-2209.12221`) — tags: handwashing, step-segmentation, quality-assessment, fine-grained-actions, healthcare: Fine-grained framework that segments WHO handwashing steps and scores key actions jointly. Uses multi-stage learning with segmentation cues to improve per-step assessment quality, outperforming coarse video-level classifiers on hospital hand-hygiene videos.
+- **Handwashing Action Detection System for an Autonomous Social Robot (2022)** (`papers/2022-arxiv-2210.15804`) — tags: handwashing, action-detection, robotics, real-time, feedback: Vision model that detects WHO handwashing steps on video to drive an autonomous social robot delivering hygiene coaching. The authors combine action detection with a lightweight deployment target to give real-time feedback during hand-rub sessions and validate performance on in-the-wild recordings.
+- **Shadow Augmentation for Handwashing Action Recognition: From Synthetic to Real Datasets (MMSP 2024)** (`papers/2024-mmsp-shadow-augmentation`) — tags: handwashing, data-augmentation, domain-robustness, synthetic-data, shadow-invariance: Studies how shadow-induced domain shift degrades handwashing action recognition and proposes shadow augmentation to harden models. Systematically varies synthetic shadow attributes, then transfers augmentation to real data to improve robustness across architectures and datasets.
 
-# Quick start guide
+## Models
+- Staging area for trained weights and model cards.
 
-You are going to need a Linux OS with TensorFlow, Keras, OpenCV, and NumPy installed to run the scripts, and a modern GPU to train the neural networks.
+## Evaluation
+- Add benchmark summaries or result notebooks here.
 
-To start working with the data, follow these steps:
+## Ideas
+- Roadmap (ideas/roadmap.md)
 
-0. Install prerequisites:  Python modules and the `ffmpeg` application. Python modules can be installed with:
+## Automation
+- `scripts/build_readme.py` regenerates this README from folder metadata.
+- `.github/workflows/build-readme.yml` runs the generator on each push and commits changes.
 
-       sudo pip install -r requirements.txt 
-
-1. Download and extract the required datasets. For this, you can use the scripts:
-
-       dataset-kaggle/get-and-preprocess-dataset.sh
-       dataset-pskus/get-and-preprocess-dataset.sh
-       dataset-metc/get-and-preprocess-dataset.sh
-
-2. Preprocess the datasets by extracting frames from the video data, separating them in classes, and further separating them in test/trainval subsets. If you used the scripts in the previous point to download the data, this was already done automatically. Otherwise use the `separate-frames.py` scripts.
-
-3. (Optional.) Calculate optical flow on the datasets.
-
-4. Train the neural network classifiers on the data.
-
-
-# Detailed instructions
-
-## 1. Datasets
-
-The code supports the following publicly available datasets:
-
-* Real-world hospital data sets, collected at the Pauls Stradins Clinical University Hospital (abbreviated as PSKUS or PSCUH): https://zenodo.org/record/4537209
-* Lab-based dataset collected at the Medical Education Technology Center (METC) of Riga Stradins University: https://zenodo.org/record/5808789
-* The publicly available subset of the [Kaggle Hand Wash Dataset](https://www.kaggle.com/realtimear/hand-wash-dataset) with video files resorted in 7 classes to match the class structure of the other datasets: https://github.com/atiselsts/data/raw/master/kaggle-dataset-6classes.tar
-
-Follow the links above to download the datasets.
-
-Once you have downloaded them, extract the archives, and organize them so that each dataset is located in a single folder.
-
-* The PSKUS dataset should have files "summary.csv", "statistics.csv" and folders named "DataSet1", "DataSet2" etc. in the top-level directory. Also copy the file `statistics-with-locations.csv` from this repository to the PSKUS dataset folder. This will ensure that videos from the same camera location will be mixed in the test and trainval folders, making the neural network generalization requirements more challenging.
-* The METC dataset should have files "summary.csv", "statistics.csv" and folders named "Interface_number_1", "Interface_number_2", "Interface_number_3" in the top-level directory.
-* For the Kaggle dataset, we provide an intermediate version named `kaggle-dataset-6classes` at [GitHub](https://github.com/atiselsts/data/raw/master/kaggle-dataset-6classes.tar). We have re-sort the Kaggle video files so that they are all put in just 7 classes. This is because the other datasets do not distinguish between right and left hand washing. The wrist-washing videos are placed the class 0 ("Other") folder.
-
-
-## 2. Preprocessing the data
-
-The folders `dataset-kaggle`, `dataset-metc` and `dataset-pskus` have `separate-frames.py` scripts in them. Fix the paths in these scripts to match the locations of your datasets, and run the script to separate the video datasets in frames, video snippets, as well as separate these frames and shorter videos in `trainval` and `test` folders.
-
-
-## 3. Calculate optical flow
-
-This step is optional and only required if the merged neural network architecture is used.
-
-Run the `calculate-optical-flow.py` script, and pass the target dataset's folder names as the command line argument to this script.
-
-
-## 4. Train the classifiers.
-
-
-For each dataset, three training scripts are provided. (Replace `xxx` with the name of the dataset.)
-
-* `xxx-classify-frames.py` — the baseline single-frame architecture
-* `xxx-classify-videos.py` — the time-distributed network architecture with GRU elements
-* `xxx-classify-merged-network.py` — the two-stream network architecture with both RGB and Optical Flow inputs.
-
-These scripts rely on a number of environmental variables to set training parameters for the neural networks.
-Unless you're fine with the default values, you should set these parameters before running the scripts, e.g. with:
-
-     export HANDWASH_NUM_EPOCHS=40
-
-The variables are:
-
-* `HANDWASH_NN` — the base model name, default "MobileNetV2"
-* `HANDWASH_NUM_LAYERS` — the number of trainable layers (of the base model), default 0
-* `HANDWASH_NUM_EPOCHS` — the max number of epochs. Early termination is still possible! Default: 20.
-* `HANDWASH_NUM_FRAMES` — how many frames to concatenate as input to the TimeDistributed network? Default: 5.
-* `HANDWASH_SUFFIX` — user-defined additional suffix of the result files of the experiment. Default: empty string.
-* `HANDWASH_PRETRAINED_MODEL` — the path to a pretrained model. Used for transfer-learning experiments. Default: empty string (pretrained model not used, the base model with ImageNet weights is loaded instead.)
-* `HANDWASH_EXTRA_LAYERS` — the number of additional dense layers to add to the network before the top layer. Default: 0.
-
-
-# References
-
-For more detailed information, see the following articles:
-
-* A. Elsts, M. Ivanovs, R. Kadikis, O. Sabelnikovs. CNN for Hand Washing Movement Classification: What Matters More — the Approach or the Dataset? In Proceedings of International Conference on Image Processing Theory, Tools and Applications (IPTA) 2022. [[PDF]](https://www.edi.lv/wp-content/uploads/2022/12/main.pdf)
-* M. Lulla, A. Rutkovskis, A. Slavinska, A. Vilde, A. Gromova, M. Ivanovs, A. Skadins, R. Kadikis and A. Elsts. Hand Washing Video Dataset Annotated According to the World Health Organization’s Handwashing Guidelines. Data, 6(4), p.38. [[HTML]](https://www.mdpi.com/2306-5729/6/4/38/htm)
-* M. Ivanovs, R. Kadikis, M. Lulla, A. Rutkovskis, A. Elsts, Automated Quality Assessment of Hand Washing Using Deep Learning, arXiv preprint, 2020. [[PDF]](https://arxiv.org/pdf/2011.11383.pdf)
-
-
-# Contacts
-
-The main author of this code can be reached via email for questions: atis.elsts@edi.lv or atis.elsts@gmail.com
+To add new assets, drop them in the appropriate folder with minimal metadata; the automation will refresh this page.
