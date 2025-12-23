@@ -1,7 +1,7 @@
 # Handwashing Research Hub
 
 Aggregated code, papers, datasets, models, and experiment ideas for automated handwashing assessment.
-_Last updated: 2025-12-23 13:41 UTC_
+_Last updated: 2025-12-23 13:44 UTC_
 
 ## Structure
 - `code/`: cloned codebases and pipelines
