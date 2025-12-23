@@ -11,8 +11,11 @@ env/
 
 # Large artifacts and datasets
 datasets/**
+!datasets/*/
 !datasets/*.md
 !datasets/**/*.md
+!datasets/*.sh
+!datasets/**/*.sh
 !datasets/.gitkeep
 **/data/
 **/raw/
@@ -23,6 +26,14 @@ code/hand-wash-compliance-yolo/runs/
 code/huiwen-HandWash/save_weights/
 code/synthetic-hand-washing/pre-trained/
 code/synthetic-hand-washing/test\ data/
+code/edi-riga-handwash/datasets/
+code/WashWise/datasets/
+code/WashWise/data/
+code/Handwash-Monitoring/checkpoints/
+code/wearPuck/data/
+code/UWash/data/
+code/UWash/inwildTest/inwildTest_dataset/
+code/UWash/pre_validation/dataset/
 *.tar
 *.tar.gz
 *.tgz
