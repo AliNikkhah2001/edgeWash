@@ -1,0 +1,48 @@
+.DS_Store
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+
+# Virtual environments and tooling
+.venv/
+env/
+.mypy_cache/
+.pytest_cache/
+
+# Large artifacts and datasets
+datasets/**
+!datasets/*.md
+!datasets/**/*.md
+!datasets/.gitkeep
+**/data/
+**/raw/
+**/outputs/
+**/logs/
+code/hand-wash-compliance-yolo/HandWashDataset_yoloFormat/TrainingData/
+code/hand-wash-compliance-yolo/runs/
+code/huiwen-HandWash/save_weights/
+code/synthetic-hand-washing/pre-trained/
+code/synthetic-hand-washing/test\ data/
+*.tar
+*.tar.gz
+*.tgz
+*.zip
+*.7z
+*.rar
+*.mp4
+*.avi
+*.mov
+*.mkv
+*.tfrecord
+*.h5
+*.hdf5
+*.ckpt
+*.pth
+*.pt
+*.onnx
+*.pb
+*.tflite
+
+# Editor files
+*.swp
+*.swo

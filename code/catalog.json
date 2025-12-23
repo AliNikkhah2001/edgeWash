@@ -1,0 +1,22 @@
+[
+  {
+    "id": "edgewash",
+    "name": "EdgeWash (WHO hand-washing movement classification)",
+    "source": "https://github.com/AliNikkhah2001/edgeWash"
+  },
+  {
+    "id": "huiwen-HandWash",
+    "name": "HandWash (surgical hand-rub recognition with multimodal cues)",
+    "source": "https://github.com/huiwen99/HandWash"
+  },
+  {
+    "id": "hand-wash-compliance-yolo",
+    "name": "Hand-wash compliance detection with YOLO",
+    "source": "https://github.com/dpt-xyz/hand-wash-compliance-yolo"
+  },
+  {
+    "id": "synthetic-hand-washing",
+    "name": "Synthetic hand-washing data generation",
+    "source": "https://github.com/r-ozakar/synthetic-hand-washing"
+  }
+]
