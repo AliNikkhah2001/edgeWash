@@ -1,0 +1,12 @@
+- [ ] Data: download & checksum PSKUS, METC, Kaggle WHO6; wire fetch scripts into CI smoke check.
+  - [ ] Add lightweight sample slices for quick tests (5 clips per class).
+  - [ ] Normalize label maps across datasets (WHO6+Other).
+- [ ] Models: train baseline MobileNetV2 (frames) and GRU (clips) on combined hospital+lab; log metrics to `evaluation/`.
+  - [ ] Fine-tune two-stream (RGB+OF) with shadow augmentation recipes from 2024 paper.
+  - [ ] Benchmark synthetic pretraining (r-ozakar) then finetune on real data.
+- [ ] Tracking: implement step-duration tracker (start/end, per-step seconds, coverage) fed by classifier outputs.
+  - [ ] Export JSON/CSV compliance report per video.
+  - [ ] Add threshold configs (per-step seconds, total duration).
+- [ ] UI/Pages: publish GitHub Pages summary and embed latest README; add demo GIFs once tracker exists.
+  - [ ] Add model cards for each released checkpoint.
+- [ ] Sensors: prototype fusion (wearPuck humidity + IMU) baseline and compare to vision-only triggers.

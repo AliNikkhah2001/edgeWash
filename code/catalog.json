@@ -18,5 +18,30 @@
     "id": "synthetic-hand-washing",
     "name": "Synthetic hand-washing data generation",
     "source": "https://github.com/r-ozakar/synthetic-hand-washing"
+  },
+  {
+    "id": "edi-riga-handwash",
+    "name": "EDI-Riga handwashing movement classifiers",
+    "source": "https://github.com/edi-riga/handwash"
+  },
+  {
+    "id": "WashWise",
+    "name": "WashWise real-time step tracker (Roboflow demo)",
+    "source": "https://github.com/aarnavshah12/WashWise"
+  },
+  {
+    "id": "Handwash-Monitoring",
+    "name": "TensorFlow handwash monitoring demo",
+    "source": "https://github.com/SidhantSarkar/Handwash-Monitoring"
+  },
+  {
+    "id": "wearPuck",
+    "name": "wearPuck multimodal sensing device and dataset",
+    "source": "https://github.com/kristofvl/wearPuck"
+  },
+  {
+    "id": "UWash",
+    "name": "UWash smartwatch handwashing assessment",
+    "source": "https://github.com/aiotgroup/UWash"
   }
 ]

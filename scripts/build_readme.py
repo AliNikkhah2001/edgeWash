@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import json
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -94,6 +95,25 @@ def collect_papers_section() -> list[dict]:
     return papers
 
 
+def collect_datasets_section() -> list[dict]:
+    datasets_root = ROOT / "datasets"
+    datasets = []
+    for folder in sorted(datasets_root.iterdir()):
+        if not folder.is_dir() or folder.name.startswith("."):
+            continue
+        title, snippet = parse_summary(folder / "summary.md")
+        tags = parse_tags(folder / "tags.md")
+        datasets.append(
+            {
+                "title": title,
+                "slug": folder.name,
+                "snippet": snippet,
+                "tags": tags,
+            }
+        )
+    return datasets
+
+
 def collect_text_blocks(base: Path) -> list[str]:
     blocks = []
     if not base.exists():
@@ -110,6 +130,7 @@ def collect_text_blocks(base: Path) -> list[str]:
 def build_readme() -> str:
     code_entries = collect_code_section()
     papers = collect_papers_section()
+    datasets = collect_datasets_section()
     ideas = collect_text_blocks(ROOT / "ideas")
     evaluations = collect_text_blocks(ROOT / "evaluation")
     models = collect_text_blocks(ROOT / "models")
@@ -120,6 +141,7 @@ def build_readme() -> str:
     lines.append(
         "Aggregated code, papers, datasets, models, and experiment ideas for automated handwashing assessment."
     )
+    lines.append(f"_Last updated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M %Z')}_")
     lines.append("")
     lines.append("## Structure")
     lines.append("- `code/`: cloned codebases and pipelines")
@@ -149,6 +171,16 @@ def build_readme() -> str:
         lines.append("- (none)")
     lines.append("")
 
+    lines.append("## Datasets")
+    if datasets:
+        for ds in datasets:
+            tag_text = ", ".join(ds["tags"]) if ds["tags"] else "no tags"
+            snippet = f": {ds['snippet']}" if ds["snippet"] else ""
+            lines.append(f"- **{ds['title']}** (`datasets/{ds['slug']}`) — tags: {tag_text}{snippet}")
+    else:
+        lines.append("- (none)")
+    lines.append("")
+
     lines.append("## Models")
     if models:
         for entry in models:
@@ -173,9 +205,16 @@ def build_readme() -> str:
         lines.append("- Track hypotheses and method ideas in this folder.")
     lines.append("")
 
+    todo_path = ROOT / "ideas" / "todo.md"
+    if todo_path.exists():
+        lines.append("## TODOs")
+        lines.extend(todo_path.read_text().splitlines())
+        lines.append("")
+
     lines.append("## Automation")
     lines.append("- `scripts/build_readme.py` regenerates this README from folder metadata.")
     lines.append("- `.github/workflows/build-readme.yml` runs the generator on each push and commits changes.")
+    lines.append("- `.github/workflows/pages.yml` builds GitHub Pages from the generated docs.")
     lines.append("")
     lines.append("To add new assets, drop them in the appropriate folder with minimal metadata; the automation will refresh this page.")
     lines.append("")
@@ -185,7 +224,12 @@ def build_readme() -> str:
 
 def main() -> None:
     readme_path = ROOT / "README.md"
-    readme_path.write_text(build_readme())
+    content = build_readme()
+    readme_path.write_text(content)
+    docs_dir = ROOT / "docs"
+    docs_dir.mkdir(exist_ok=True)
+    docs_path = docs_dir / "index.md"
+    docs_path.write_text("---\nlayout: default\n---\n\n" + content)
 
 
 if __name__ == "__main__":
