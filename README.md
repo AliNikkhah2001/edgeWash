@@ -12,15 +12,15 @@ _Last updated: 2025-12-23 13:44 UTC_
 - `ideas/`: future experiment notes and design sketches
 
 ## Codebases
-- **TensorFlow handwash monitoring demo** (`code/Handwash-Monitoring`) — source: https://github.com/SidhantSarkar/Handwash-Monitoring
-- **UWash smartwatch handwashing assessment** (`code/UWash`) — source: https://github.com/aiotgroup/UWash
-- **WashWise real-time step tracker (Roboflow demo)** (`code/WashWise`) — source: https://github.com/aarnavshah12/WashWise
-- **EdgeWash (WHO hand-washing movement classification)** (`code/edgewash`) — source: https://github.com/AliNikkhah2001/edgeWash
-- **EDI-Riga handwashing movement classifiers** (`code/edi-riga-handwash`) — source: https://github.com/edi-riga/handwash
-- **Hand-wash compliance detection with YOLO** (`code/hand-wash-compliance-yolo`) — source: https://github.com/dpt-xyz/hand-wash-compliance-yolo
-- **HandWash (surgical hand-rub recognition with multimodal cues)** (`code/huiwen-HandWash`) — source: https://github.com/huiwen99/HandWash
-- **Synthetic hand-washing data generation** (`code/synthetic-hand-washing`) — source: https://github.com/r-ozakar/synthetic-hand-washing
-- **wearPuck multimodal sensing device and dataset** (`code/wearPuck`) — source: https://github.com/kristofvl/wearPuck
+- **[ ] TensorFlow handwash monitoring demo** (`code/Handwash-Monitoring`) — source: https://github.com/SidhantSarkar/Handwash-Monitoring
+- **[ ] UWash smartwatch handwashing assessment** (`code/UWash`) — source: https://github.com/aiotgroup/UWash
+- **[X] WashWise real-time step tracker (Roboflow demo)** (`code/WashWise`) — source: https://github.com/aarnavshah12/WashWise
+- **[ ] EdgeWash (WHO hand-washing movement classification)** (`code/edgewash`) — source: https://github.com/AliNikkhah2001/edgeWash
+- **[ ] EDI-Riga handwashing movement classifiers** (`code/edi-riga-handwash`) — source: https://github.com/edi-riga/handwash
+- **[ ] Hand-wash compliance detection with YOLO** (`code/hand-wash-compliance-yolo`) — source: https://github.com/dpt-xyz/hand-wash-compliance-yolo
+- **[ ] HandWash (surgical hand-rub recognition with multimodal cues)** (`code/huiwen-HandWash`) — source: https://github.com/huiwen99/HandWash
+- **[ ] Synthetic hand-washing data generation** (`code/synthetic-hand-washing`) — source: https://github.com/r-ozakar/synthetic-hand-washing
+- **[ ] wearPuck multimodal sensing device and dataset** (`code/wearPuck`) — source: https://github.com/kristofvl/wearPuck
 
 ## Papers
 - **Vision-Based Hand Hygiene Monitoring with Depth Cameras (Stanford PAIR 2015)** (`papers/2015-stanford-depth`) — tags: depth, privacy, hospital, non-public, cnn: Early depth-only system using overhead sensors near soap dispensers to detect hand presence and dispenser use. Demonstrates lightweight CNNs on depth frames achieving high precision while preserving privacy; dataset not public.
