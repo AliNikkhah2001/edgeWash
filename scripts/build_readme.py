@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import re
 import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
@@ -32,7 +33,7 @@ def git_remote(path: Path) -> str:
         return ""
 
 
-def collect_code_section() -> list[tuple[str, str, str]]:
+def collect_code_section() -> list[dict]:
     catalog = load_catalog()
     code_root = ROOT / "code"
     entries = []
@@ -40,20 +41,44 @@ def collect_code_section() -> list[tuple[str, str, str]]:
         if not folder.is_dir() or folder.name.startswith("."):
             continue
         meta = catalog.get(folder.name, {})
-        name = meta.get("name") or folder.name
+        title, snippet, status = parse_summary(folder / "summary.md")
+        status = load_status(folder, status)
+        tags = parse_tags(folder / "tags.md")
+        name = title or meta.get("name") or folder.name
         source = meta.get("source") or git_remote(folder)
-        entries.append((name, folder.name, source))
+        entries.append(
+            {
+                "title": name,
+                "slug": folder.name,
+                "source": source,
+                "snippet": snippet,
+                "tags": tags,
+                "status": status,
+            }
+        )
     return entries
 
 
-def parse_summary(summary_path: Path) -> tuple[str, str]:
-    if not summary_path.exists():
-        return summary_path.parent.name, ""
-    lines = [line.rstrip() for line in summary_path.read_text().splitlines()]
-    non_empty = [line for line in lines if line.strip()]
-    title = non_empty[0].lstrip("# ").strip() if non_empty else summary_path.parent.name
+CHECKBOX_RE = re.compile(r"^[#>*-]?\s*\[([ xX])\]\s*(.*)$")
 
-    snippet_lines = []
+
+def extract_status(lines: list[str]) -> str:
+    for line in lines:
+        match = CHECKBOX_RE.match(line.strip())
+        if match:
+            return "[x]" if match.group(1).lower() == "x" else "[ ]"
+    return ""
+
+
+def parse_summary(summary_path: Path) -> tuple[str, str, str]:
+    if not summary_path.exists():
+        return summary_path.parent.name, "", ""
+
+    lines = [line.rstrip() for line in summary_path.read_text().splitlines()]
+    status = extract_status(lines)
+
+    title = summary_path.parent.name
+    snippet_lines: list[str] = []
     seen_title = False
     for line in lines:
         text = line.strip()
@@ -61,13 +86,27 @@ def parse_summary(summary_path: Path) -> tuple[str, str]:
             if seen_title and snippet_lines:
                 break
             continue
+        if CHECKBOX_RE.match(text):
+            continue
+        if text.startswith("#"):
+            text = text.lstrip("#").strip()
         if not seen_title:
+            title = text or title
             seen_title = True
             continue
         snippet_lines.append(text)
 
     snippet = " ".join(snippet_lines).strip()
-    return title, snippet
+    return title, snippet, status
+
+
+def load_status(folder: Path, fallback: str = "") -> str:
+    status_path = folder / "status.md"
+    if status_path.exists():
+        status = extract_status(status_path.read_text().splitlines())
+        if status:
+            return status
+    return fallback
 
 
 def parse_tags(tags_path: Path) -> list[str]:
@@ -82,7 +121,8 @@ def collect_papers_section() -> list[dict]:
     for folder in sorted(papers_root.iterdir()):
         if not folder.is_dir() or folder.name.startswith("."):
             continue
-        title, snippet = parse_summary(folder / "summary.md")
+        title, snippet, status = parse_summary(folder / "summary.md")
+        status = load_status(folder, status)
         tags = parse_tags(folder / "tags.md")
         papers.append(
             {
@@ -90,6 +130,7 @@ def collect_papers_section() -> list[dict]:
                 "slug": folder.name,
                 "snippet": snippet,
                 "tags": tags,
+                "status": status,
             }
         )
     return papers
@@ -101,7 +142,8 @@ def collect_datasets_section() -> list[dict]:
     for folder in sorted(datasets_root.iterdir()):
         if not folder.is_dir() or folder.name.startswith("."):
             continue
-        title, snippet = parse_summary(folder / "summary.md")
+        title, snippet, status = parse_summary(folder / "summary.md")
+        status = load_status(folder, status)
         tags = parse_tags(folder / "tags.md")
         datasets.append(
             {
@@ -109,6 +151,7 @@ def collect_datasets_section() -> list[dict]:
                 "slug": folder.name,
                 "snippet": snippet,
                 "tags": tags,
+                "status": status,
             }
         )
     return datasets
@@ -154,9 +197,14 @@ def build_readme() -> str:
 
     lines.append("## Codebases")
     if code_entries:
-        for name, folder, source in code_entries:
-            source_text = f" — source: {source}" if source else ""
-            lines.append(f"- **{name}** (`code/{folder}`){source_text}")
+        for entry in code_entries:
+            tag_text = ", ".join(entry["tags"]) if entry["tags"] else "no tags"
+            source_text = f" — source: {entry['source']}" if entry["source"] else ""
+            snippet = f": {entry['snippet']}" if entry["snippet"] else ""
+            status = entry["status"] or "[ ]"
+            lines.append(
+                f"- {status} **{entry['title']}** (`code/{entry['slug']}`) — tags: {tag_text}{source_text}{snippet}"
+            )
     else:
         lines.append("- (none)")
     lines.append("")
@@ -166,7 +214,10 @@ def build_readme() -> str:
         for paper in papers:
             tag_text = ", ".join(paper["tags"]) if paper["tags"] else "no tags"
             snippet = f": {paper['snippet']}" if paper["snippet"] else ""
-            lines.append(f"- **{paper['title']}** (`papers/{paper['slug']}`) — tags: {tag_text}{snippet}")
+            status = paper["status"] or "[ ]"
+            lines.append(
+                f"- {status} **{paper['title']}** (`papers/{paper['slug']}`) — tags: {tag_text}{snippet}"
+            )
     else:
         lines.append("- (none)")
     lines.append("")
@@ -176,7 +227,10 @@ def build_readme() -> str:
         for ds in datasets:
             tag_text = ", ".join(ds["tags"]) if ds["tags"] else "no tags"
             snippet = f": {ds['snippet']}" if ds["snippet"] else ""
-            lines.append(f"- **{ds['title']}** (`datasets/{ds['slug']}`) — tags: {tag_text}{snippet}")
+            status = ds["status"] or "[ ]"
+            lines.append(
+                f"- {status} **{ds['title']}** (`datasets/{ds['slug']}`) — tags: {tag_text}{snippet}"
+            )
     else:
         lines.append("- (none)")
     lines.append("")

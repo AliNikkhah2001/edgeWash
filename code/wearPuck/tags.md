@@ -1,0 +1,4 @@
+wearable
+imu
+environmental
+hardware
