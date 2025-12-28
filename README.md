@@ -1,7 +1,7 @@
 # Handwashing Research Hub
 
 Aggregated code, papers, datasets, models, and experiment ideas for automated handwashing assessment.
-_Last updated: 2025-12-23 13:44 UTC_
+_Last updated: 2025-12-28 11:43 UTC_
 
 ## Structure
 - `code/`: cloned codebases and pipelines
@@ -12,18 +12,18 @@ _Last updated: 2025-12-23 13:44 UTC_
 - `ideas/`: future experiment notes and design sketches
 
 ## Codebases
-- **[ ] TensorFlow handwash monitoring demo** (`code/Handwash-Monitoring`) — source: https://github.com/SidhantSarkar/Handwash-Monitoring
-- **[ ] UWash smartwatch handwashing assessment** (`code/UWash`) — source: https://github.com/aiotgroup/UWash
-- **[X] WashWise real-time step tracker (Roboflow demo)** (`code/WashWise`) — source: https://github.com/aarnavshah12/WashWise
-- **[ ] EdgeWash (WHO hand-washing movement classification)** (`code/edgewash`) — source: https://github.com/AliNikkhah2001/edgeWash
-- **[ ] EDI-Riga handwashing movement classifiers** (`code/edi-riga-handwash`) — source: https://github.com/edi-riga/handwash
-- **[ ] Hand-wash compliance detection with YOLO** (`code/hand-wash-compliance-yolo`) — source: https://github.com/dpt-xyz/hand-wash-compliance-yolo
-- **[ ] HandWash (surgical hand-rub recognition with multimodal cues)** (`code/huiwen-HandWash`) — source: https://github.com/huiwen99/HandWash
-- **[ ] Synthetic hand-washing data generation** (`code/synthetic-hand-washing`) — source: https://github.com/r-ozakar/synthetic-hand-washing
-- **[ ] wearPuck multimodal sensing device and dataset** (`code/wearPuck`) — source: https://github.com/kristofvl/wearPuck
+- **TensorFlow handwash monitoring demo** (`code/Handwash-Monitoring`) — source: https://github.com/SidhantSarkar/Handwash-Monitoring
+- **UWash smartwatch handwashing assessment** (`code/UWash`) — source: https://github.com/aiotgroup/UWash
+- **WashWise real-time step tracker (Roboflow demo)** (`code/WashWise`) — source: https://github.com/aarnavshah12/WashWise
+- **EdgeWash (WHO hand-washing movement classification)** (`code/edgewash`) — source: https://github.com/AliNikkhah2001/edgeWash
+- **EDI-Riga handwashing movement classifiers** (`code/edi-riga-handwash`) — source: https://github.com/edi-riga/handwash
+- **Hand-wash compliance detection with YOLO** (`code/hand-wash-compliance-yolo`) — source: https://github.com/dpt-xyz/hand-wash-compliance-yolo
+- **HandWash (surgical hand-rub recognition with multimodal cues)** (`code/huiwen-HandWash`) — source: https://github.com/huiwen99/HandWash
+- **Synthetic hand-washing data generation** (`code/synthetic-hand-washing`) — source: https://github.com/r-ozakar/synthetic-hand-washing
+- **wearPuck multimodal sensing device and dataset** (`code/wearPuck`) — source: https://github.com/kristofvl/wearPuck
 
 ## Papers
-- **Vision-Based Hand Hygiene Monitoring with Depth Cameras (Stanford PAIR 2015)** (`papers/2015-stanford-depth`) — tags: depth, privacy, hospital, non-public, cnn: Early depth-only system using overhead sensors near soap dispensers to detect hand presence and dispenser use. Demonstrates lightweight CNNs on depth frames achieving high precision while preserving privacy; dataset not public.
+- **[ ]** (`papers/2015-stanford-depth`) — tags: depth, privacy, hospital, non-public, cnn: ## Vision-Based Hand Hygiene Monitoring with Depth Cameras (Stanford PAIR 2015)
 - **Hand-Hygiene Activity Recognition in Egocentric Video (MMSP 2019)** (`papers/2019-mmsp-chengzhang`) — tags: egocentric-video, handwashing, temporal-detection, two-stream-cnn, food-safety: Two-stage pipeline for detecting hand-hygiene actions in egocentric videos from food-manufacturing environments. Temporal localization uses motion and hand-mask cues, followed by a two-stream CNN with search to classify actions, reaching ~80% detection accuracy on a 100-participant dataset.
 - **Automated Quality Assessment of Hand Washing Using Deep Learning (2020)** (`papers/2020-arxiv-2011.11383`) — tags: handwashing, quality-assessment, mobilenet, transfer-learning, hospital: Early work on frame-level WHO step recognition using MobileNetV2 and Xception. Evaluates hospital footage; reports ~64% frame accuracy and highlights challenges with real-world variability.
 - **Designing a Computer-Vision Application: Hand-Hygiene Assessment in an Open-Room Environment (J. Imaging 2021)** (`papers/2021-jimaging-chengzhang`) — tags: handwashing, deployment, dataset-design, open-world, computer-vision: Case study of deploying a hand-hygiene assessment system in an open-room setting. Discusses dataset design, environmental challenges, and end-to-end engineering considerations for reliable step recognition beyond controlled lab conditions.
