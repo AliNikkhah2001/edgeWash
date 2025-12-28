@@ -1,3 +1,7 @@
 # Automated Quality Assessment of Hand Washing Using Deep Learning (2020)
 
-Early work on frame-level WHO step recognition using MobileNetV2 and Xception. Evaluates hospital footage; reports ~64% frame accuracy and highlights challenges with real-world variability.
+Early frame-level WHO step and quality recognition on hospital footage.
+
+- Media/architecture: video frames; MobileNetV2/Xception image CNNs (per-frame classification).
+- Contribution: benchmarks early CNN baselines for WHO steps and quality, reporting ~64% frame accuracy and highlighting real-world variability.
+- Availability: dataset not public; code and trained weights not provided; no external API.

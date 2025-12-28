@@ -2,6 +2,10 @@
 
 Smartwatch IMU dataset for handwashing quality assessment. Multiple sessions per participant with accelerometer/gyroscope/magnetometer streams; processed via provided scripts into train/test splits for 10 classes.
 
+- Data type: wearable IMU time-series (acc/gyro/mag).
+- Labels: handwashing quality/step-related classes (10-class splits in scripts).
+- Availability: data public via Google Drive; preprocessing/training code in `code/UWash`; weights not included.
+
 ## Download
 - Repo: `https://github.com/aiotgroup/UWash` (scripts + Google Drive data link in README).
 
