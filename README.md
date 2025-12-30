@@ -1,11 +1,7 @@
 # Handwashing Research Hub
 
 Aggregated code, papers, datasets, models, and experiment ideas for automated handwashing assessment.
-_Last updated: 2025-12-30 17:54 UTC_
-
-## Cloning / history note
-- 2025-12-30: Git history rewritten to remove a 54 MB notebook. If you cloned before this date, `git fetch --all --prune` then `git reset --hard origin/master` (or re-clone) to avoid stale objects.
-- Recommended lightweight clone: `git clone --filter=blob:limit=50m --sparse https://github.com/AliNikkhah2001/edgeWash.git`
+_Last updated: 2025-12-30 18:05 UTC_
 
 ## Structure
 - `code/`: cloned codebases and pipelines
