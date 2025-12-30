@@ -200,11 +200,18 @@ def build_readme() -> str:
         for entry in code_entries:
             tag_text = ", ".join(entry["tags"]) if entry["tags"] else "no tags"
             source_text = f" — source: {entry['source']}" if entry["source"] else ""
-            snippet = f": {entry['snippet']}" if entry["snippet"] else ""
             status = entry["status"] or "[ ]"
-            lines.append(
-                f"- {status} **{entry['title']}** (`code/{entry['slug']}`) — tags: {tag_text}{source_text}{snippet}"
-            )
+            summary_path = ROOT / "code" / entry['slug'] / "summary.md"
+            full_summary = summary_path.read_text() if summary_path.exists() else ""
+            
+            lines.append(f"- {status} **{entry['title']}** (`code/{entry['slug']}`) — tags: {tag_text}{source_text}")
+            if full_summary:
+                lines.append("<details>")
+                lines.append(f"<summary>Show details</summary>")
+                lines.append("")
+                lines.append(full_summary)
+                lines.append("</details>")
+            lines.append("")
     else:
         lines.append("- (none)")
     lines.append("")
@@ -213,11 +220,18 @@ def build_readme() -> str:
     if papers:
         for paper in papers:
             tag_text = ", ".join(paper["tags"]) if paper["tags"] else "no tags"
-            snippet = f": {paper['snippet']}" if paper["snippet"] else ""
             status = paper["status"] or "[ ]"
-            lines.append(
-                f"- {status} **{paper['title']}** (`papers/{paper['slug']}`) — tags: {tag_text}{snippet}"
-            )
+            summary_path = ROOT / "papers" / paper['slug'] / "summary.md"
+            full_summary = summary_path.read_text() if summary_path.exists() else ""
+            
+            lines.append(f"- {status} **{paper['title']}** (`papers/{paper['slug']}`) — tags: {tag_text}")
+            if full_summary:
+                lines.append("<details>")
+                lines.append(f"<summary>Show details</summary>")
+                lines.append("")
+                lines.append(full_summary)
+                lines.append("</details>")
+            lines.append("")
     else:
         lines.append("- (none)")
     lines.append("")
@@ -226,11 +240,18 @@ def build_readme() -> str:
     if datasets:
         for ds in datasets:
             tag_text = ", ".join(ds["tags"]) if ds["tags"] else "no tags"
-            snippet = f": {ds['snippet']}" if ds["snippet"] else ""
             status = ds["status"] or "[ ]"
-            lines.append(
-                f"- {status} **{ds['title']}** (`datasets/{ds['slug']}`) — tags: {tag_text}{snippet}"
-            )
+            summary_path = ROOT / "datasets" / ds['slug'] / "summary.md"
+            full_summary = summary_path.read_text() if summary_path.exists() else ""
+            
+            lines.append(f"- {status} **{ds['title']}** (`datasets/{ds['slug']}`) — tags: {tag_text}")
+            if full_summary:
+                lines.append("<details>")
+                lines.append(f"<summary>Show details</summary>")
+                lines.append("")
+                lines.append(full_summary)
+                lines.append("</details>")
+            lines.append("")
     else:
         lines.append("- (none)")
     lines.append("")
