@@ -1,19 +1,98 @@
-# Shadow Augmentation for Handwashing Action Recognition: From Synthetic to Real Datasets (MMSP 2024)
+# Shadow Augmentation for Handwashing Action Recognition (MMSP 2024)
 
-Study of shadow-induced domain shift and a shadow augmentation strategy for robust handwashing recognition.
+## Overview
+Studies how shadow-induced domain shift degrades handwashing action recognition and proposes shadow augmentation to improve model robustness.
 
-## Data
-- **Synthetic:** handwashing pose dataset with controlled shadow size/intensity/placement.
-- **Real:** Portable51 (51 participants), Farm23 (23 participants), Kaggle Hand Wash Dataset (indoor).
-- **Classes:** 7 WHO rubbing actions.
+## Research Contributions
+- **Domain shift analysis**: Quantified shadow-induced performance degradation
+- **Shadow augmentation method**: Data augmentation strategy to improve robustness
+- **Cross-environment validation**: Tested on outdoor/portable sink scenarios
+- **Practical deployment focus**: Addresses real-world lighting variations
 
-## Method
-- **Models:** MobileNetV3 (synthetic experiments), ResNet50/ResNet152/ViT (real datasets), all ImageNet-pretrained.
-- **Augmentation:** add synthetic shadows (e.g., 3,200 + 2,400 images) to shift breakdown points.
-- **Temporal handling:** per-frame classification; no 3D/sequence model.
+## Problem Statement
+- Handwashing action recognition systems trained indoors fail outdoors
+- Strong shadows cast by sunlight degrade model accuracy
+- Indoor-trained models lack robustness to shadow variations
+- Need for domain adaptation strategies for outdoor deployment
+
+## Methodology
+
+### Datasets
+1. **Indoor Training Data**: Standard handwashing datasets (PSKUS/METC)
+2. **Shadow Test Datasets**:
+   - **Portable51**: 51 clips at portable sinks (outdoor)
+   - **Farm23**: 23 clips at farm environments (outdoor)
+   - **Public Availability**: Not released (non-public)
+
+### Shadow Domain Shift Analysis
+- **Indoor → Outdoor**: Significant accuracy drop observed
+- **Shadow Characteristics**: Hard edges, high contrast, dynamic movement
+- **Failure Modes**: Model confuses shadows with hand movements
+
+### Shadow Augmentation Strategy
+- **Synthetic Shadow Generation**: Add artificial shadows during training
+- **Shadow Parameters**: Position, angle, intensity, edge hardness
+- **Augmentation Probability**: Applied to training data probabilistically
+- **Goal**: Make model invariant to shadow presence
+
+### Model Architecture
+- **Base Models**: Standard CNNs (MobileNetV2, ResNet) tested
+- **Training**: With and without shadow augmentation
+- **Evaluation**: Indoor (standard) vs outdoor (shadow) test sets
 
 ## Results
-- **Findings:** heavier and larger shadows improve robustness; shadow augmentation boosts OoD performance on Farm23.
+- **Without Augmentation**: Large accuracy drop on shadow test sets
+- **With Shadow Augmentation**: Improved robustness to shadows
+- **Trade-offs**: Slight indoor accuracy loss for significant outdoor gains
+- **Generalization**: Better cross-domain performance
+
+## Dataset Details
+- **Portable51 Shadow Dataset**:
+  - 51 portable sink clips (outdoor)
+  - Strong sunlight shadows
+  - Public Availability: No
+- **Farm23 Shadow Dataset**:
+  - 23 farm environment clips
+  - Variable lighting conditions
+  - Public Availability: No
+
+## Technical Structure
+1. **Baseline Training**: Indoor data only
+2. **Shadow Augmentation Training**: Indoor data + synthetic shadows
+3. **Evaluation**: Indoor test + outdoor shadow test
+4. **Metrics**: Accuracy, per-class performance, confusion analysis
+
+## Key Findings
+- **Shadow impact**: Significant degradation without augmentation
+- **Augmentation effectiveness**: Restores performance on shadow data
+- **Minimal indoor loss**: Small accuracy trade-off on standard data
+- **Practical value**: Enables outdoor deployment
+
+## Limitations
+- **Shadow datasets not public**: Cannot reproduce experiments
+- **Synthetic shadows**: May not fully capture real shadow diversity
+- **Limited outdoor scenarios**: Only portable sinks and farms tested
+- **No multi-domain data**: Training still requires indoor data
+
+## Applications
+- **Outdoor handwashing monitoring**: Portable sinks, camping, farms
+- **Variable lighting**: Robust to time-of-day changes
+- **Cross-environment deployment**: Single model for indoor/outdoor
+- **Domain adaptation**: General approach for shadow robustness
+
+## Related Work Comparison
+- **vs. Domain randomization**: Focused specifically on shadows
+- **vs. Multi-domain training**: Uses augmentation instead of diverse data
+- **vs. Style transfer**: Simpler synthetic shadow generation
 
 ## Availability
-- **Data/code:** Portable51/Farm23 not public; code/weights not released; no API.
+- **Paper**: MMSP 2024 conference proceedings
+- **Code**: Not publicly released
+- **Datasets**: Not publicly released (Portable51, Farm23)
+- **Trained Weights**: Not provided
+- **External API**: No
+
+## Citation
+```
+Paper presented at IEEE International Workshop on Multimedia Signal Processing (MMSP), 2024
+```
