@@ -1,14 +1,20 @@
 # Synthetic Hand-Washing Gesture Dataset (Özakar & Gedikli, 2025)
 
-CGI-rendered dataset with 96,000 frames (64 minutes) across 8 WHO-inspired gestures, 4 characters, and 4 environments (RGB, depth, masks). Ships with pre-trained models (InceptionV3, YOLOv8n, PointNet) in the upstream repo.
+Open synthetic dataset of 96,000 rendered frames (64 minutes) across 8 gestures, 4 characters, and 4 environments.
 
-- Data type: synthetic RGB, depth, masks, and point clouds.
-- Labels: 8 WHO-inspired gesture classes with per-frame annotations.
-- Availability: data public via Google Drive links; code and pretrained models available in the upstream repo.
+## Overview
+- **Size:** 96,000 frames at 25 FPS; 960x540 resolution.
+- **Breakdown:** 12,000 frames per gesture; 750 frames per environment per gesture.
+- **Modalities:** RGB, depth, isolated depth, hand masks; point clouds derived from depth.
+- **Labels:** per-frame gesture class (8).
 
-## Download
-- Upstream repo: `https://github.com/r-ozakar/synthetic-hand-washing`
-- Dataset/model links: see `README` in the upstream repo (Google Drive).
+## Structure
+- **Assets:** multiple Google Drive archives (RGB, depth, masks, point clouds, pretrained models).
+- **Derived data:** ROI crops (150x150 → 96x96) used for Inception/PointNet training.
+
+## Availability
+- **Access:** public via Google Drive links in upstream repo.
+- **Download:** `./fetch.sh` (requires `gdown`).
 
 ## Notes
-- Useful for augmentation and cross-domain training; authors report ~79% real-world accuracy with YOLOv8n-seg trained on synthetic data.
+- **Use cases:** synthetic-to-real transfer; baselines in `code/synthetic-hand-washing`.

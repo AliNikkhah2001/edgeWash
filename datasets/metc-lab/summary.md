@@ -1,14 +1,20 @@
 # METC Lab Handwashing Dataset
 
-Lab-collected WHO handwash recordings from the Medical Education Technology Center (Riga Stradins University). Multiple camera interfaces, annotated with WHO step labels; aligns with PSKUS label scheme (6 steps + "Other").
+Lab-collected WHO handwashing videos from RSU METC with multi-camera interfaces and frame-level labels.
 
-- Data type: RGB videos from multiple camera interfaces.
-- Labels: per-frame WHO step codes (6 steps + Other).
-- Availability: data public on Zenodo; preprocessing scripts in `code/edgewash`; weights not included.
+## Overview
+- **Size:** 3 zip files totaling ~2.12 GB.
+- **Cameras:** Interface_number_1/2/3.
+- **Modalities:** RGB video in lab environment.
+- **Labels:** per-frame WHO step codes (6 steps + Other).
 
-## Download
-- Zenodo: `https://zenodo.org/record/5808789/files/METC_handwashing_dataset.zip?download=1`
-- Script: `./fetch.sh` downloads to `datasets/metc-lab/raw/`.
+## Structure
+- **Top-level:** `Interface_number_*/` directories plus `summary.csv` and `statistics.csv`.
+- **Annotations:** per-frame CSV/JSON files aligned to PSKUS label scheme.
+
+## Availability
+- **Access:** public on Zenodo.
+- **Download:** `./fetch.sh` (downloads to `datasets/metc-lab/raw/`).
 
 ## Notes
-- Use with `code/edgewash/dataset-metc/` preprocessing scripts to extract frames and split train/test.
+- **Use with:** `code/edgewash/dataset-metc` preprocessing scripts.

@@ -1,7 +1,19 @@
 # HHA300 Hand Hygiene Assessment Dataset (2023, non-public)
 
-300 videos (60 participants) labeled frame-by-frame with WHO steps plus quality scores for each step. Introduced with a multi-stage conv-transformer for joint segmentation and scoring.
+Fine-grained assessment dataset with 300 handwashing videos (60 participants) annotated at frame-level and video-level.
 
-- Data type: RGB video with per-frame WHO step labels and quality scores.
-- Labels: step codes + quality annotations for each frame.
-- Availability: data non-public; no download links; code/weights not provided here.
+## Overview
+- **Size:** 300 videos; average length >1000 frames each.
+- **Participants:** 60 (mix of medical staff and non-staff); multiple scenes.
+- **Modalities:** RGB video; optical flow derived in experiments.
+- **Labels:** frame-level step labels + per-video quality score.
+
+## Structure
+- **Steps:** 6 WHO steps with per-frame boundaries.
+- **Annotations:** step labels per frame and assessment scores.
+
+## Availability
+- **Access:** non-public; no download link provided.
+
+## Notes
+- **Used by:** multi-stage convolution-transformer framework (paper 2022-arxiv-2209.12221).

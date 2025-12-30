@@ -1,7 +1,18 @@
 # Portable51 & Farm23 Shadow Datasets (2024, non-public)
 
-Outdoor handwashing videos recorded at portable sinks (51 clips) and farm environments (23 clips) to study shadow-induced domain shift. Used in the 2024 shadow augmentation paper.
+Outdoor handwashing datasets used to study shadow-induced domain shift in action recognition.
 
-- Data type: RGB videos in outdoor shadow-heavy settings.
-- Labels: handwashing action annotations for robustness studies.
-- Availability: non-public; referenced for methodology and augmentation strategies.
+## Overview
+- **Size:** Portable51 (51 participants) + Farm23 (23 participants).
+- **Modalities:** RGB videos with strong lighting/shadow variation.
+- **Labels:** 7 WHO rubbing actions (clip-level).
+
+## Structure
+- **Portable51:** portable-sink environment with moderate shadow.
+- **Farm23:** farm environment with constant heavy shadow.
+
+## Availability
+- **Access:** non-public; described in MMSP 2024 shadow augmentation paper.
+
+## Notes
+- **Use cases:** out-of-distribution evaluation for shadow robustness.

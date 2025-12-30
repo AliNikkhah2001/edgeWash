@@ -1,14 +1,19 @@
 # Kaggle Handwash (Resorted to WHO 6+1 Classes)
 
-Public subset of the Kaggle hand-wash videos, re-sorted into 7 folders to align with WHO steps (left/right merged; wrist/rinse in "Other"). ~292 short videos.
+Public subset of the Kaggle hand-wash videos re-sorted into 7 WHO-style classes.
 
-- Data type: short RGB videos grouped into 7 WHO-style classes.
-- Labels: per-clip class labels only (no frame-level annotations).
-- Availability: data public via Kaggle tarball; preprocessing/training scripts in `code/edgewash`; weights not included.
+## Overview
+- **Size:** ~1.21 GB tarball; ~292 short videos.
+- **Classes:** 7 (6 WHO steps + Other; left/right merged).
+- **Modalities:** RGB video; clip-level labels only.
 
-## Download
-- Tarball: `https://github.com/atiselsts/data/raw/master/kaggle-dataset-6classes.tar`
-- Script: `./fetch.sh` downloads and extracts into `datasets/kaggle-who6/raw/`.
+## Structure
+- **Layout:** `kaggle-dataset-6classes/<class_name>/` with videos.
+- **Splits:** none provided; use preprocessing scripts to build train/test splits.
+
+## Availability
+- **Access:** public (Kaggle derivative hosted on GitHub).
+- **Download:** `./fetch.sh` (downloads to `datasets/kaggle-who6/raw/`).
 
 ## Notes
-- Pairs well with `code/edgewash/dataset-kaggle/` scripts for frame extraction and splitting.
+- **Used by:** `code/edgewash` and YOLO demos.

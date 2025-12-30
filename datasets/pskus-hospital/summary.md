@@ -1,15 +1,20 @@
 # PSKUS Hospital Handwashing Dataset
 
-Real-world hospital videos (Latvia) with 3,185 hand-washing episodes annotated frame-by-frame using WHO movement codes. Includes `summary.csv`, `statistics.csv`, and per-frame labels (`is_washing`, `movement_code`, `frame_time`). Resolution 320x240 or 640x480 at 30 FPS.
+Large hospital dataset with 3,185 annotated handwashing episodes (30 FPS; 320x240 or 640x480).
 
-- Data type: RGB hospital videos.
-- Labels: per-frame WHO movement codes plus washing flags and timestamps.
-- Availability: data public on Zenodo; preprocessing scripts in `code/edgewash`; weights not included.
+## Overview
+- **Size:** 13 zip files totaling ~18.4 GB.
+- **Episodes:** 3,185 videos; 6,690 annotations; 83,804 s total washing time.
+- **Modalities:** RGB hospital videos.
+- **Labels:** frame-level `is_washing` + `movement_code` with timestamps.
 
-## Download
-- Zenodo: `https://zenodo.org/record/4537209/files/Handwashing_dataset.zip?download=1` (large; requires Zenodo login sometimes).
-- Script: `./fetch.sh` (downloads zip to `datasets/pskus-hospital/raw/`).
+## Structure
+- **Top-level:** `DataSet1`..`DataSet11`, `summary.csv`, `statistics.csv`, per-video CSV/JSON labels.
+- **Splits:** not provided; use preprocessing scripts to create train/val/test.
+
+## Availability
+- **Access:** public on Zenodo.
+- **Download:** `./fetch.sh` (downloads to `datasets/pskus-hospital/raw/`).
 
 ## Notes
-- Merge left/right variants into 6 WHO steps + "Other".
-- Copy `statistics-with-locations.csv` from `code/edgewash/dataset-pskus/` into the extracted dataset for location-aware splits.
+- **Extra:** copy `statistics-with-locations.csv` from `code/edgewash/dataset-pskus/` for location-aware splits.

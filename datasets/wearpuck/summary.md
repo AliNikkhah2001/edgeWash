@@ -1,13 +1,18 @@
 # wearPuck Multimodal Handwash Dataset (2024)
 
-Open-source wrist-worn sensor dataset capturing 43 hand-washing events over ~10 hours of recordings (highly imbalanced). Sensors: IMU (acc/gyro) + humidity/temperature/pressure. Collected with the wearPuck device; provides raw CSVs and preprocessing scripts.
+Wearable sensor dataset for handwashing event detection using IMU + environmental signals.
 
-- Data type: IMU + environmental sensor time-series.
-- Labels: event-level hand-washing annotations across ~43 events.
-- Availability: data and preprocessing scripts public in the upstream repo; no trained models/weights provided.
+## Overview
+- **Size:** ~10 hours of recordings; 43 handwashing events (reported by authors).
+- **Modalities:** accelerometer/gyroscope + humidity, temperature, pressure.
+- **Labels:** event-level annotations (handwash vs non-handwash).
 
-## Download
-- Repo: `https://github.com/kristofvl/wearPuck` (data folder + preprocessing).
+## Structure
+- **Recordings:** CSV streams such as `imu.csv`, `bme.csv`, `timestamps.csv`, `button.csv`, `beacon.csv`, `capacitive.csv`.
+- **Labels:** `labels.csv` with start/end intervals; experiments expect `iWoar/data/*.csv`.
+
+## Availability
+- **Access:** raw dataset not bundled; collection scripts and labels are public in upstream repo.
 
 ## Notes
-- Good for sensor fusion experiments; humidity spikes are strong hand-wash cues. No vision data included.
+- **Use cases:** sensor fusion and event detection; no vision data.
