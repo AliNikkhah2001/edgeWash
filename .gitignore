@@ -34,6 +34,7 @@ code/wearPuck/data/
 code/UWash/data/
 code/UWash/inwildTest/inwildTest_dataset/
 code/UWash/pre_validation/dataset/
+code/hand-wash-compliance-yolo/HWD_YOLOv5.ipynb
 *.tar
 *.tar.gz
 *.tgz
