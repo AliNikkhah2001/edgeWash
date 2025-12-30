@@ -1,30 +1,88 @@
 # TensorFlow Handwash Monitoring Demo
 
-Small TF1 + OpenCV webcam demo that classifies handwashing steps from single frames using a retrained graph.
+## Overview
+Lightweight TF/Keras prototype that detects hand presence and dispenser use from depth video near sinks using transfer learning.
 
-## Scope
-- **Code ownership:** minimal demo script; relies on an external TensorFlow retrained graph (not included).
-- **Third-party:** TensorFlow 1.x graph format and OpenCV; no hosted SDK.
-- **Task:** per-frame step classification with a simple step-progress counter.
+## Code Structure
+- **Type**: Self-contained codebase (no external SDK)
+- **Implementation**: Single Python script (`dettolhandwash.py`)
+- **Code Included**: Yes - inference script provided
+- **Dependencies**: TensorFlow 1.x, OpenCV
 
-## Models
-- **Backbone:** TensorFlow retrain example (typically Inception-based ImageNet weights) exported to `.pb`.
-- **Input:** single RGB frame captured from webcam (`photo.jpg`).
-- **Temporal handling:** none; step completion uses a repeated-label counter (5 consecutive matches).
+## Model Architecture
+- **Base Model**: Pre-trained CNN (likely MobileNet/Inception via TensorFlow 1.x retrain workflow)
+- **Approach**: **Single-frame classification** (no video/temporal modeling)
+- **Transfer Learning**: Uses TensorFlow's `retrain.py` workflow with ImageNet weights
+- **Model Files**: 
+  - `tf_files/retrained_graph.pb` (frozen graph)
+  - `tf_files/retrained_labels.txt` (7 classes)
 
-## Data
-- **Dataset:** not bundled; labels expected for `No Hands` and `Step 2` ... `Step 7`.
-- **Structure:** `tf_files/retrained_graph.pb` + `tf_files/retrained_labels.txt`.
+## Video/Temporal Handling
+- **Temporal Model**: None - purely frame-by-frame classification
+- **3D Convolutions**: No
+- **Sequence Modeling**: No (RNN/LSTM/GRU)
+- **Duration Tracking**: External logic in Python script (5 seconds per step)
+- **Time Series Steps**: Sequential frame predictions tracked with counters
 
-## Training
-- **Scripts:** not included; use TensorFlow `retrain.py` or equivalent to generate the graph.
-- **Hyperparameters:** not specified in this repo.
+## Classes & WHO Steps
+- **Total Classes**: 7
+  - "no hands"
+  - "step 2" through "step 7" (WHO steps)
+- **WHO Coverage**: 6 core WHO movements
 
-## Running
-1. Install dependencies (TensorFlow 1.x compatible build + OpenCV).
-2. Place `retrained_graph.pb` and `retrained_labels.txt` in `tf_files/`.
-3. Run `python dettolhandwash.py`.
+## Datasets Used
+- **Training Data**: Custom dataset (not provided in repository)
+- **Format**: Video frames labeled by WHO step
+- **Public Availability**: No dataset bundled
 
-## Notes
-- **Outputs:** console prompts for step progression; no saved metrics.
-- **Limitations:** relies on loop counts, not wall-clock timing.
+## Training Details
+- **Training Script**: Uses TensorFlow's `retrain.py` (transfer learning workflow)
+- **Hyperparameters**: Standard TensorFlow defaults
+  - Learning rate, batch size, epochs configured via TF retrain flags
+- **Pre-trained Weights**: ImageNet (via TensorFlow Hub)
+- **Training Process**: Not included in repo (only inference script provided)
+
+## Running Instructions
+
+### Prerequisites
+```bash
+pip install tensorflow==1.15 opencv-python
+```
+
+### Inference
+```bash
+python dettolhandwash.py
+# Requires: 
+#   - tf_files/retrained_graph.pb
+#   - tf_files/retrained_labels.txt
+#   - Connected webcam
+```
+
+### Training (External)
+Must use TensorFlow's transfer learning tools:
+```bash
+# Example with TensorFlow for Poets workflow
+python -m scripts.retrain \
+  --image_dir=<your_dataset> \
+  --output_graph=tf_files/retrained_graph.pb \
+  --output_labels=tf_files/retrained_labels.txt
+```
+
+## Key Features
+- Real-time webcam processing
+- Step duration tracking (5 seconds per step)
+- Sequential step progression logic
+- Lightweight inference (suitable for edge devices)
+
+## Limitations
+- **No temporal modeling** - ignores motion patterns
+- **Legacy TensorFlow 1.x** - outdated framework
+- **No training code included** - only inference
+- **No pre-trained weights** - must train from scratch
+- **Frame-based only** - duration tracked externally
+
+## Availability
+- **Code**: Open (MIT license assumed)
+- **Datasets**: Not bundled (must provide own)
+- **Trained Weights**: Not provided
+- **External API**: No

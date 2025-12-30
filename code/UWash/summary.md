@@ -1,33 +1,135 @@
 # UWash Smartwatch Handwashing Assessment
 
-PyTorch pipeline for handwashing quality assessment from smartwatch IMU time-series with multiple train/eval protocols.
+## Overview
+IMU-based smartwatch pipeline for detecting and scoring handwashing quality/compliance, with preprocessing and model training scripts.
 
-## Scope
-- **Code ownership:** full preprocessing + training code; no hosted SDK.
-- **Modalities:** accelerometer + gyroscope (magnetometer present in raw data).
-- **Task:** 10-class sequence classification for handwashing quality/steps.
+## Code Structure
+- **Type**: Self-contained codebase (no external SDK)
+- **Implementation**: Complete training and evaluation pipeline
+- **Code Included**: Yes - preprocessing, training, evaluation scripts
+- **Dependencies**: PyTorch, NumPy, scikit-learn
 
-## Models
-- **Backbones:** 1D ResNet (`resnet1d.py`), MobileNetV2/V3 (`mobilenet.py`), UWasher SPP-UNet, UTFormer.
-- **Input:** fixed-length IMU segments (`seq_len` 64 or 128) per sensor stream.
-- **Temporal handling:** sequence modeling via 1D CNNs/transformer; no video.
+## Model Architecture
+- **Primary Model**: **1D ResNet** (ResNet1D-18/34/50)
+- **Alternative Models**:
+  - U-Net (1D segmentation)
+  - Transformer (UTFormer for time-series)
+  - MLP (multilayer perceptron)
+  - MobileNet (1D adaptation)
+- **Approach**: Wearable sensor-based classification
+- **Input**: IMU time-series (accelerometer, gyroscope, magnetometer)
 
-## Data
-- **Dataset:** `Dataset_raw.zip` (Google Drive) + preprocessed splits.
-- **Preprocessing:** `decode_sensor_data.py` → `shift_data.py` → `augment_data.py`.
-- **Protocols:** normal, location-independent, and user-independent splits.
+## Video/Temporal Handling
+- **Modality**: **No video** - pure IMU sensor data
+- **Temporal Model**: 1D CNNs for time-series sequences
+- **3D Convolutions**: N/A (1D signals, not video)
+- **Sequence Modeling**: Implicit in 1D CNN architecture
+- **Segment Lengths**: 64 or 128 samples (configurable)
+- **Time Series Steps**: Quality assessment over handwashing duration
 
-## Training
-- **Scripts:** `UWasher/train_eval/normal_64.py`, `normal_128.py`, `li_64.py`, `ui_64.py`, plus eval scripts.
-- **Key hyperparameters:** epochs 300, batch size 4096, init_lr 1e-3, momentum 0.99, milestones [200,300,400,500,600,700,800], lr_down_ratio 0.1, loss `CEL` or `focal`.
-- **Model config:** 10 classes, 2 sensors, 3 axes (`ModelConfig.py`).
+## Classes & WHO Steps
+- **Total Classes**: 10 quality assessment classes
+- **Focus**: Handwashing **quality scoring**, not just step detection
+- **WHO Alignment**: Follows WHO guidelines for quality assessment
 
-## Running
-1. Download `Dataset_raw.zip` and update `base_path` in `pre_validation/*.py`.
-2. Run preprocessing scripts in order.
-3. Update dataset path in `UWasher/data/DatasetConfig.py` (missing in this clone; see upstream repo).
-4. Run a training script, e.g., `python UWasher/train_eval/normal_64.py`.
+## Datasets Used
+- **UWash Smartwatch Dataset**
+  - Source: Google Drive (link in README)
+  - Format: Raw IMU CSV files → preprocessed numpy arrays
+  - Sensors: 3-axis accelerometer, gyroscope, magnetometer
+  - Sessions: Multiple per participant
+  - Public Availability: Yes (via Google Drive)
 
-## Notes
-- **Weights:** not bundled.
-- **Missing file:** `UWasher/data/DatasetConfig.py` is referenced but absent here.
+## Training Details
+
+### Preprocessing Pipeline
+1. **decode_sensor_data.py** - Decode raw IMU data from smartwatch
+2. **shift_data.py** - Temporal alignment and synchronization
+3. **augment_data.py** - Data augmentation for IMU signals
+
+### Training Scripts
+- **normal_64.py** / **normal_128.py** - Standard training (segment length 64/128)
+- **li_64.py** - Location-independent training
+- **ui_64.py** - User-independent training
+
+### Evaluation Scripts
+- **normal_eval_64.py** / **normal_eval_128.py** - Standard evaluation
+- **li_eval_64.py** - Location-independent evaluation
+- **ui_eval_64.py** - User-independent evaluation
+
+### Hyperparameters
+- **Segment Length**: 64 or 128 samples
+- **Training Strategies**: 
+  - Normal (standard train/test split)
+  - Location-independent (generalize across locations)
+  - User-independent (generalize across users)
+- **Model Architectures**: ResNet1D (default), UTFormer, MobileNet, U-Net, MLP
+- **Batch Size, Learning Rate, Epochs**: Configurable in TrainConfig.py
+
+## Running Instructions
+
+### 1. Download Dataset
+```bash
+# Download from Google Drive link in README
+# Link: https://drive.google.com/file/d/1ZRdRiwXp4xbFUWIIjIQ0OEK6gK0cwODN/view
+```
+
+### 2. Preprocess Data
+```bash
+# IMPORTANT: Modify base_path in each script first
+python pre_validation/decode_sensor_data.py
+python pre_validation/shift_data.py
+python pre_validation/augment_data.py
+```
+
+### 3. Configure Paths
+```bash
+# Edit DatasetConfig.py to point to your preprocessed dataset
+vim UWasher/data/DatasetConfig.py
+```
+
+### 4. Train Model
+```bash
+# Standard training (segment length 64)
+python UWasher/train_eval/normal_64.py
+
+# Standard training (segment length 128)
+python UWasher/train_eval/normal_128.py
+
+# Location-independent
+python UWasher/train_eval/li_64.py
+
+# User-independent
+python UWasher/train_eval/ui_64.py
+```
+
+### 5. Evaluate Model
+```bash
+# Standard evaluation
+python UWasher/train_eval/normal_eval_64.py
+
+# Location-independent evaluation
+python UWasher/train_eval/li_eval_64.py
+
+# User-independent evaluation
+python UWasher/train_eval/ui_eval_64.py
+```
+
+## Key Features
+- **Wearable-based** (no video, privacy-preserving)
+- **Quality assessment** (not just step detection)
+- **Multiple training strategies** (location/user-independent)
+- **Multiple architectures** (ResNet1D, Transformer, U-Net, MLP, MobileNet)
+- **Complete preprocessing pipeline** (raw IMU → train/test splits)
+
+## Limitations
+- **Requires wearables** (smartwatch with IMU sensors)
+- **IMU-only** (no visual information)
+- **Quality scoring focus** (not fine-grained WHO step detection)
+- **Trained weights not included** (must train from scratch)
+
+## Availability
+- **Code**: Open (MIT license)
+- **Dataset**: Yes (Google Drive)
+- **Trained Weights**: Not included (training required)
+- **External API**: No

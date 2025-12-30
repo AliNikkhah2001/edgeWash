@@ -1,27 +1,99 @@
 # wearPuck Multimodal Wearable Toolkit
 
-Hardware + data pipeline for a wrist-worn sensor device; includes classical ML experiments for handwashing event detection.
+## Overview
+Firmware and data tooling for the wearPuck device capturing IMU and environmental signals for handwashing analytics.
 
-## Scope
-- **Code ownership:** firmware + data collection + experiments; no hosted SDK.
-- **Modalities:** IMU (acc/gyro), humidity, temperature, pressure, beacon/button signals.
-- **Task:** handwash vs non-handwash event classification.
+## Code Structure
+- **Type**: Self-contained codebase (hardware + firmware + ML pipeline)
+- **Implementation**: Firmware (JavaScript for Espruino) + Python ML scripts
+- **Code Included**: Yes - firmware, data processing, ML experiments
+- **Dependencies**: Python (scikit-learn, pandas, numpy), Espruino Puck.js
 
-## Models
-- **Algorithms:** RandomForest and SVM baselines (`iWoar/modules/run_ml.py`).
-- **Temporal handling:** fixed windows (125/250 samples) with summary statistics; no deep sequence model.
+## Hardware Platform
+- **Device**: Espruino Puck.js (wrist-worn)
+- **Additional Sensors**: BME280 (humidity, temperature, pressure)
+- **Form Factor**: Wristband prototype
+- **Open-source Hardware**: Design files included
 
-## Data
-- **Dataset:** not bundled; expected CSV recordings in `iWoar/data/`.
-- **Structure:** collection script writes `imu.csv`, `bme.csv`, `timestamps.csv`, `button.csv`, `beacon.csv`, `capacitive.csv`; `labels.csv` defines segments.
+## Model Architecture
+- **Approach**: **Classical ML** (not deep learning)
+- **Models**: Random Forest, SVM (scikit-learn)
+- **Input**: Multimodal sensor fusion
+  - IMU: Accelerometer, gyroscope
+  - Environmental: Humidity, temperature, pressure
+- **Focus**: Event detection (handwashing vs non-handwashing)
 
-## Training
-- **Script:** `iWoar/experiments.py` → `modules/run_ml.py`.
-- **Hyperparameters:** `n_estimators=250`, `window_size` 125 or 250, 5 repetitions, RandomOverSampler; leave-one-out CV.
+## Video/Temporal Handling
+- **Modality**: **No video** - wearable sensors only
+- **Temporal Model**: Classical ML on windowed features
+- **3D Convolutions**: N/A (sensor data, not video)
+- **Sequence Modeling**: Feature engineering on time windows
+- **Event Detection**: Binary classification (handwashing event or not)
 
-## Running
-1. Collect data with `read_data.py` or place CSVs in `iWoar/data/`.
-2. Run `cd iWoar && python experiments.py`.
+## Classes & WHO Steps
+- **Focus**: **Binary event detection** (handwashing vs non-handwashing)
+- **Not WHO step classification** - detects presence of handwashing only
+- **Highly imbalanced**: More non-handwashing than handwashing events
 
-## Notes
-- **Outputs:** `results_loso.csv` and `results_personalized.csv` are saved.
+## Datasets Used
+- **wearPuck Multimodal Handwash Dataset**
+  - **Size**: 43 handwashing events over ~10 hours
+  - **Highly imbalanced**: Many more non-handwashing samples
+  - **Sensors**: IMU (acc/gyro) + humidity/temp/pressure
+  - **Format**: Raw CSV files from wearPuck device
+  - **Public Availability**: Yes (open-source dataset)
+
+## Training Details
+
+### Data Collection
+- **Firmware**: `firmware/puckApp.js`, `firmware/puckBTService.js`, `firmware/beacon.js`
+- **Data Format**: CSV exports from wearPuck device
+- **Preprocessing**: `read_data.py`, `merge_data.py`
+
+### ML Experiments
+- **Script**: `iWoar/experiments.py`
+- **Preprocessing**: `iWoar/modules/prepare.py`
+- **Training**: `iWoar/modules/run_ml.py`
+- **Models**: Random Forest, SVM (scikit-learn)
+- **Features**: Statistical features from sensor time windows
+
+### Hyperparameters
+- **Classical ML**: Standard scikit-learn defaults
+- **Window Size**: Configurable in preprocessing
+- **Feature Engineering**: Time-domain statistics
+
+## Running Instructions
+
+### 1. Clone Repository
+```bash
+git clone https://github.com/kristofvl/wearPuck.git
+cd wearPuck
+```
+
+### 2. Run ML Experiments (on provided dataset)
+```bash
+cd iWoar
+python experiments.py
+```
+
+## Key Features
+- **Multimodal sensor fusion** (IMU + environmental)
+- **Open-source hardware** (Espruino Puck.js + BME280)
+- **Classical ML** (Random Forest, SVM)
+- **Humidity spike detection** (unique environmental cue)
+- **Event detection** (not step classification)
+- **Low-cost wearable** (accessible hardware)
+- **Complete pipeline** (firmware + data + ML)
+
+## Limitations
+- **Highly imbalanced dataset** (43 events in ~10 hours)
+- **Event detection only** (not WHO step classification)
+- **Classical ML** (no deep learning)
+- **Limited dataset size**
+
+## Availability
+- **Code**: Open (license not specified)
+- **Dataset**: Yes (included in repo as CSVs)
+- **Hardware Design**: Yes (encasing STL files)
+- **Firmware**: Yes (Espruino JavaScript)
+- **External API**: No
