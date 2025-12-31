@@ -379,7 +379,8 @@ def create_frame_generators(
     train_df: pd.DataFrame,
     val_df: pd.DataFrame,
     test_df: pd.DataFrame,
-    batch_size: int = BATCH_SIZE
+    batch_size: int = BATCH_SIZE,
+    augment_multiplier: int = 1
 ) -> Tuple[FrameDataGenerator, FrameDataGenerator, FrameDataGenerator]:
     """
     Create frame-based data generators for train/val/test.
@@ -397,21 +398,24 @@ def create_frame_generators(
         train_df,
         batch_size=batch_size,
         shuffle=True,
-        augment=True
+        augment=True,
+        augment_multiplier=augment_multiplier
     )
     
     val_gen = FrameDataGenerator(
         val_df,
         batch_size=batch_size,
         shuffle=False,
-        augment=False
+        augment=False,
+        augment_multiplier=1
     )
     
     test_gen = FrameDataGenerator(
         test_df,
         batch_size=batch_size,
         shuffle=False,
-        augment=False
+        augment=False,
+        augment_multiplier=1
     )
     
     logger.info(f"Created frame generators:")
@@ -427,7 +431,8 @@ def create_sequence_generators(
     val_df: pd.DataFrame,
     test_df: pd.DataFrame,
     sequence_length: int,
-    batch_size: int = BATCH_SIZE
+    batch_size: int = BATCH_SIZE,
+    augment_multiplier: int = 1
 ) -> Tuple[SequenceDataGenerator, SequenceDataGenerator, SequenceDataGenerator]:
     """
     Create sequence-based data generators for train/val/test.
@@ -447,7 +452,8 @@ def create_sequence_generators(
         sequence_length=sequence_length,
         batch_size=batch_size,
         shuffle=True,
-        augment=True
+        augment=True,
+        augment_multiplier=augment_multiplier
     )
     
     val_gen = SequenceDataGenerator(
@@ -455,7 +461,8 @@ def create_sequence_generators(
         sequence_length=sequence_length,
         batch_size=batch_size,
         shuffle=False,
-        augment=False
+        augment=False,
+        augment_multiplier=1
     )
     
     test_gen = SequenceDataGenerator(
@@ -463,7 +470,8 @@ def create_sequence_generators(
         sequence_length=sequence_length,
         batch_size=batch_size,
         shuffle=False,
-        augment=False
+        augment=False,
+        augment_multiplier=1
     )
     
     logger.info(f"Created sequence generators:")
