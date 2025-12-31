@@ -78,6 +78,7 @@ DATASETS = {
 IMG_SIZE = (224, 224)  # MobileNetV2 standard input size
 SEQUENCE_LENGTH = 16   # Number of frames for temporal models
 FRAME_SKIP = 2         # Extract every Nth frame (1=all, 2=half)
+FRAME_SKIP_OPTIONS = [1, 2, 4]
 
 # Classes
 NUM_CLASSES = 7
@@ -112,6 +113,8 @@ LEARNING_RATE = 1e-4
 PATIENCE = 10           # Early stopping patience
 REDUCE_LR_PATIENCE = 5  # ReduceLROnPlateau patience
 MIN_LR = 1e-7           # Minimum learning rate
+AUGMENT_MULTIPLIER = 50  # how many virtual epochs via augmentation (on-the-fly)
+ENABLE_SHADOW_AUG = True
 
 # Data split ratios
 TRAIN_RATIO = 0.7

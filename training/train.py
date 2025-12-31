@@ -32,7 +32,8 @@ from config import (
     REDUCE_LR_CONFIG,
     RANDOM_SEED,
     LOG_FORMAT,
-    LOG_DATE_FORMAT
+    LOG_DATE_FORMAT,
+    AUGMENT_MULTIPLIER
 )
 from data_generators import create_frame_generators, create_sequence_generators
 from models import get_model
@@ -193,13 +194,15 @@ def train_model(
     if model_type in ['mobilenetv2', 'resnet50', 'efficientnetb0']:
         train_gen, val_gen, _ = create_frame_generators(
             train_df, val_df, val_df,  # Use val_df for test_gen (placeholder)
-            batch_size=batch_size
+            batch_size=batch_size,
+            augment_multiplier=AUGMENT_MULTIPLIER
         )
     else:  # sequence-based models
         train_gen, val_gen, _ = create_sequence_generators(
             train_df, val_df, val_df,
             sequence_length=SEQUENCE_LENGTH,
-            batch_size=batch_size
+            batch_size=batch_size,
+            augment_multiplier=AUGMENT_MULTIPLIER
         )
     
     # Create or load model
@@ -224,7 +227,7 @@ def train_model(
     logger.info(f"Epochs: {epochs}")
     logger.info(f"Batch size: {batch_size}")
     logger.info(f"Learning rate: {learning_rate}")
-    logger.info(f"Train batches: {len(train_gen)}")
+    logger.info(f"Train batches: {len(train_gen)} (with augment_multiplier={AUGMENT_MULTIPLIER})")
     logger.info(f"Val batches: {len(val_gen)}")
     
     history = model.fit(

@@ -21,7 +21,9 @@ from config import (
     AUGMENTATION_CONFIG,
     RANDOM_SEED,
     LOG_FORMAT,
-    LOG_DATE_FORMAT
+    LOG_DATE_FORMAT,
+    AUGMENT_MULTIPLIER,
+    ENABLE_SHADOW_AUG
 )
 
 # Setup logging
@@ -51,7 +53,8 @@ class FrameDataGenerator(keras.utils.Sequence):
         img_size: Tuple[int, int] = IMG_SIZE,
         num_classes: int = NUM_CLASSES,
         shuffle: bool = True,
-        augment: bool = False
+        augment: bool = False,
+        augment_multiplier: int = 1
     ):
         """
         Initialize frame data generator.
@@ -70,12 +73,13 @@ class FrameDataGenerator(keras.utils.Sequence):
         self.num_classes = num_classes
         self.shuffle = shuffle
         self.augment = augment
+        self.augment_multiplier = max(1, augment_multiplier)
         self.indices = np.arange(len(self.df))
         self.on_epoch_end()
     
     def __len__(self):
         """Return number of batches per epoch."""
-        return int(np.floor(len(self.df) / self.batch_size))
+        return int(np.floor((len(self.df) * self.augment_multiplier) / self.batch_size))
     
     def __getitem__(self, index):
         """
@@ -88,9 +92,8 @@ class FrameDataGenerator(keras.utils.Sequence):
             Tuple of (X, y) where X is images and y is labels
         """
         # Generate batch indices
-        start_idx = index * self.batch_size
-        end_idx = start_idx + self.batch_size
-        batch_indices = self.indices[start_idx:end_idx]
+        # Sample with replacement to simulate virtual epoch expansion
+        batch_indices = np.random.choice(self.indices, size=self.batch_size, replace=True)
         
         # Generate batch data
         X, y = self._generate_batch(batch_indices)
@@ -204,7 +207,18 @@ class FrameDataGenerator(keras.utils.Sequence):
         if 'brightness_range' in AUGMENTATION_CONFIG:
             brightness = np.random.uniform(*AUGMENTATION_CONFIG['brightness_range'])
             img = np.clip(img.astype(np.float32) * brightness, 0, 255).astype(np.uint8)
-        
+
+        # Random shadow
+        if ENABLE_SHADOW_AUG and np.random.rand() < 0.5:
+            h, w = img.shape[:2]
+            x1, y1 = np.random.randint(0, w), 0
+            x2, y2 = np.random.randint(0, w), h
+            mask = np.zeros((h, w), dtype=np.uint8)
+            cv2.fillPoly(mask, [np.array([[x1, y1], [x2, y2], [0, h], [w, h]])], 255)
+            shadow_intensity = np.random.uniform(0.5, 0.9)
+            shadow = np.stack([mask]*3, axis=-1)
+            img = np.where(shadow > 0, (img * shadow_intensity).astype(np.uint8), img)
+
         return img
 
 
@@ -223,7 +237,8 @@ class SequenceDataGenerator(keras.utils.Sequence):
         img_size: Tuple[int, int] = IMG_SIZE,
         num_classes: int = NUM_CLASSES,
         shuffle: bool = True,
-        augment: bool = False
+        augment: bool = False,
+        augment_multiplier: int = 1
     ):
         """
         Initialize sequence data generator.
@@ -244,6 +259,7 @@ class SequenceDataGenerator(keras.utils.Sequence):
         self.num_classes = num_classes
         self.shuffle = shuffle
         self.augment = augment
+        self.augment_multiplier = max(1, augment_multiplier)
         
         # Group frames by video
         self.video_groups = self.df.groupby('video_id')
@@ -279,7 +295,7 @@ class SequenceDataGenerator(keras.utils.Sequence):
     
     def __len__(self):
         """Return number of batches per epoch."""
-        return int(np.floor(len(self.sequences) / self.batch_size))
+        return int(np.floor((len(self.sequences) * self.augment_multiplier) / self.batch_size))
     
     def __getitem__(self, index):
         """
@@ -291,9 +307,7 @@ class SequenceDataGenerator(keras.utils.Sequence):
         Returns:
             Tuple of (X, y) where X is sequences and y is labels
         """
-        start_idx = index * self.batch_size
-        end_idx = start_idx + self.batch_size
-        batch_indices = self.indices[start_idx:end_idx]
+        batch_indices = np.random.choice(self.indices, size=self.batch_size, replace=True)
         
         X, y = self._generate_batch(batch_indices)
         return X, y
