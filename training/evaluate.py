@@ -122,7 +122,8 @@ def evaluate_model(
     )
     
     # Top-2 accuracy
-    top2_acc = top_k_accuracy_score(y_true, y_pred_proba, k=2)
+    # Provide full label set so sklearn doesn't error when a class is missing in y_true
+    top2_acc = top_k_accuracy_score(y_true, y_pred_proba, k=2, labels=list(range(NUM_CLASSES)))
     
     # Per-class metrics
     per_class_metrics = classification_report(
