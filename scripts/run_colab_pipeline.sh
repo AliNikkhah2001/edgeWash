@@ -39,7 +39,6 @@ SKIP_PREPROCESS=${SKIP_PREPROCESS:-false}
 SKIP_TRAIN=${SKIP_TRAIN:-false}
 SKIP_EVAL=${SKIP_EVAL:-false}
 RESUME_FROM=${RESUME_FROM:-}
-TF_VERSION=${TF_VERSION:-2.18.0}           # Set to auto to keep preinstalled TF
 TB_PID=""
 
 if [[ ! -d "$PROJECT_ROOT/training" ]]; then
@@ -65,49 +64,10 @@ fi
 log "Python binary: $PYTHON"
 log "Config: datasets=$DATASETS models=$TRAIN_MODELS epochs=$EPOCHS lr=$LEARNING_RATE"
 
-# Dependency install (TensorFlow handled flexibly for Colab Python versions)
+# Dependency install (TensorFlow is expected to be preinstalled on Colab)
 $PYTHON -m pip install --no-cache-dir -U pip setuptools wheel
-
-INSTALLED_TF=$($PYTHON - <<'PY'
-try:
-    import tensorflow as tf
-    print(tf.__version__)
-except Exception:
-    pass
-PY
-)
-
-INSTALL_TF=true
-if [[ -n "$INSTALLED_TF" ]]; then
-  if [[ "$TF_VERSION" == "auto" ]]; then
-    log "Using preinstalled TensorFlow $INSTALLED_TF (TF_VERSION=auto)"
-    INSTALL_TF=false
-  elif [[ "$INSTALLED_TF" == "$TF_VERSION" ]]; then
-    log "TensorFlow $INSTALLED_TF already installed; skipping reinstall"
-    INSTALL_TF=false
-  else
-    log "TensorFlow $INSTALLED_TF detected; will install $TF_VERSION as requested"
-  fi
-fi
-
-REQS=(pandas numpy scikit-learn opencv-python matplotlib seaborn tqdm requests tensorboard nbformat)
-if [[ "$INSTALL_TF" == true ]]; then
-  REQS=("tensorflow==${TF_VERSION}" "${REQS[@]}")
-fi
-
-set +e
+REQS=(scikit-learn pandas numpy opencv-python-headless matplotlib seaborn tqdm requests nbformat)
 $PYTHON -m pip install --no-cache-dir -U "${REQS[@]}"
-pip_status=$?
-if [[ $pip_status -ne 0 && "$INSTALL_TF" == true ]]; then
-  log "TensorFlow ${TF_VERSION} install failed; retrying with latest available tensorflow"
-  $PYTHON -m pip install --no-cache-dir -U tensorflow
-  pip_status=$?
-fi
-set -e
-if [[ $pip_status -ne 0 ]]; then
-  log "Dependency installation failed (status $pip_status). Check output above."
-  exit $pip_status
-fi
 
 if command -v nvidia-smi >/dev/null 2>&1; then
   log "GPU status:"
