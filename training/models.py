@@ -9,7 +9,7 @@ from typing import Tuple, Optional
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import layers, models
-from tensorflow.keras.applications import MobileNetV2
+from tensorflow.keras.applications import MobileNetV2, ResNet50, EfficientNetB0
 
 # Import configuration
 from config import (
@@ -102,6 +102,92 @@ def create_mobilenetv2_model(
     logger.info(f"  Trainable params: {sum([tf.size(w).numpy() for w in model.trainable_weights]):,}")
     logger.info(f"  Backbone frozen: {freeze_backbone}")
     
+    return model
+
+
+def create_resnet50_model(
+    input_shape: Tuple[int, int, int] = (*IMG_SIZE, 3),
+    num_classes: int = NUM_CLASSES,
+    learning_rate: float = LEARNING_RATE,
+    freeze_backbone: bool = True
+) -> keras.Model:
+    """
+    Create ResNet50-based frame classifier.
+    """
+    config = MODEL_CONFIGS['resnet50']
+    base_model = ResNet50(
+        input_shape=input_shape,
+        include_top=False,
+        weights=config['pretrained_weights']
+    )
+    base_model.trainable = not freeze_backbone
+
+    inputs = keras.Input(shape=input_shape, name='image_input')
+    x = base_model(inputs, training=False)
+    x = layers.GlobalAveragePooling2D(name='global_avg_pool')(x)
+    for units in config['classifier_units']:
+        x = layers.Dense(units, activation='relu', name=f'fc_{units}')(x)
+        x = layers.Dropout(config['dropout_rate'], name=f'dropout_{units}')(x)
+    outputs = layers.Dense(num_classes, activation='softmax', name='predictions')(x)
+
+    model = keras.Model(inputs, outputs, name='resnet50_classifier')
+    model.compile(
+        optimizer=keras.optimizers.Adam(learning_rate),
+        loss='categorical_crossentropy',
+        metrics=[
+            'accuracy',
+            keras.metrics.TopKCategoricalAccuracy(k=2, name='top2_accuracy'),
+            keras.metrics.Precision(name='precision'),
+            keras.metrics.Recall(name='recall')
+        ]
+    )
+    logger.info(f"Created {config['name']}")
+    logger.info(f"  Total params: {model.count_params():,}")
+    logger.info(f"  Trainable params: {sum([tf.size(w).numpy() for w in model.trainable_weights]):,}")
+    logger.info(f"  Backbone frozen: {freeze_backbone}")
+    return model
+
+
+def create_efficientnetb0_model(
+    input_shape: Tuple[int, int, int] = (*IMG_SIZE, 3),
+    num_classes: int = NUM_CLASSES,
+    learning_rate: float = LEARNING_RATE,
+    freeze_backbone: bool = True
+) -> keras.Model:
+    """
+    Create EfficientNetB0-based frame classifier.
+    """
+    config = MODEL_CONFIGS['efficientnetb0']
+    base_model = EfficientNetB0(
+        input_shape=input_shape,
+        include_top=False,
+        weights=config['pretrained_weights']
+    )
+    base_model.trainable = not freeze_backbone
+
+    inputs = keras.Input(shape=input_shape, name='image_input')
+    x = base_model(inputs, training=False)
+    x = layers.GlobalAveragePooling2D(name='global_avg_pool')(x)
+    for units in config['classifier_units']:
+        x = layers.Dense(units, activation='relu', name=f'fc_{units}')(x)
+        x = layers.Dropout(config['dropout_rate'], name=f'dropout_{units}')(x)
+    outputs = layers.Dense(num_classes, activation='softmax', name='predictions')(x)
+
+    model = keras.Model(inputs, outputs, name='efficientnetb0_classifier')
+    model.compile(
+        optimizer=keras.optimizers.Adam(learning_rate),
+        loss='categorical_crossentropy',
+        metrics=[
+            'accuracy',
+            keras.metrics.TopKCategoricalAccuracy(k=2, name='top2_accuracy'),
+            keras.metrics.Precision(name='precision'),
+            keras.metrics.Recall(name='recall')
+        ]
+    )
+    logger.info(f"Created {config['name']}")
+    logger.info(f"  Total params: {model.count_params():,}")
+    logger.info(f"  Trainable params: {sum([tf.size(w).numpy() for w in model.trainable_weights]):,}")
+    logger.info(f"  Backbone frozen: {freeze_backbone}")
     return model
 
 
@@ -259,6 +345,58 @@ def create_gru_model(
     return model
 
 
+def create_3d_cnn_model(
+    sequence_length: int = SEQUENCE_LENGTH,
+    img_shape: Tuple[int, int, int] = (*IMG_SIZE, 3),
+    num_classes: int = NUM_CLASSES,
+    learning_rate: float = LEARNING_RATE,
+    conv_filters=None,
+    kernel_size=(3, 3, 3),
+    pool_size=(1, 2, 2),
+    dense_units=None,
+    dropout_rate: float = 0.5
+) -> keras.Model:
+    """
+    Create a lightweight 3D CNN for video sequences.
+    Input shape: (T, H, W, C) where T=sequence_length.
+    """
+    config = MODEL_CONFIGS['3d_cnn']
+    conv_filters = conv_filters or config['conv_filters']
+    dense_units = dense_units or config['dense_units']
+
+    sequence_input = keras.Input(shape=(sequence_length, *img_shape), name='sequence_input')
+    x = sequence_input
+    # 3D convolutional trunk
+    for idx, filters in enumerate(conv_filters):
+        x = layers.Conv3D(filters, kernel_size, padding='same', activation='relu', name=f'conv3d_{idx+1}')(x)
+        x = layers.BatchNormalization(name=f'bn3d_{idx+1}')(x)
+        x = layers.MaxPool3D(pool_size=pool_size, name=f'pool3d_{idx+1}')(x)
+        x = layers.Dropout(dropout_rate * 0.5, name=f'dropout3d_{idx+1}')(x)
+
+    x = layers.GlobalAveragePooling3D(name='global_avg_pool3d')(x)
+    for units in dense_units:
+        x = layers.Dense(units, activation='relu', name=f'fc_{units}')(x)
+        x = layers.Dropout(dropout_rate, name=f'dropout_{units}')(x)
+    outputs = layers.Dense(num_classes, activation='softmax', name='predictions')(x)
+
+    model = keras.Model(sequence_input, outputs, name='cnn3d_classifier')
+    model.compile(
+        optimizer=keras.optimizers.Adam(learning_rate),
+        loss='categorical_crossentropy',
+        metrics=[
+            'accuracy',
+            keras.metrics.TopKCategoricalAccuracy(k=2, name='top2_accuracy'),
+            keras.metrics.Precision(name='precision'),
+            keras.metrics.Recall(name='recall')
+        ]
+    )
+    logger.info(f"Created {config['name']}")
+    logger.info(f"  Total params: {model.count_params():,}")
+    logger.info(f"  Trainable params: {sum([tf.size(w).numpy() for w in model.trainable_weights]):,}")
+    logger.info(f"  Sequence length: {sequence_length}")
+    return model
+
+
 def get_model(
     model_type: str,
     **kwargs
@@ -280,12 +418,17 @@ def get_model(
     
     if model_type == 'mobilenetv2':
         return create_mobilenetv2_model(**kwargs)
-    elif model_type == 'lstm':
+    if model_type == 'resnet50':
+        return create_resnet50_model(**kwargs)
+    if model_type == 'efficientnetb0':
+        return create_efficientnetb0_model(**kwargs)
+    if model_type == 'lstm':
         return create_lstm_model(**kwargs)
-    elif model_type == 'gru':
+    if model_type == 'gru':
         return create_gru_model(**kwargs)
-    else:
-        raise ValueError(f"Unknown model type: {model_type}. Choose from: mobilenetv2, lstm, gru")
+    if model_type == '3d_cnn':
+        return create_3d_cnn_model(**kwargs)
+    raise ValueError("Unknown model type: mobilenetv2, resnet50, efficientnetb0, lstm, gru, 3d_cnn")
 
 
 def print_model_summary(model: keras.Model, save_path: Optional[str] = None) -> None:

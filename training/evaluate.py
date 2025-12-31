@@ -86,12 +86,12 @@ def evaluate_model(
     
     # Create data generator
     logger.info("\nCreating data generator...")
-    if model_type == 'mobilenetv2':
+    if model_type in ['mobilenetv2', 'resnet50', 'efficientnetb0']:
         _, _, test_gen = create_frame_generators(
             test_df, test_df, test_df,
             batch_size=batch_size
         )
-    else:  # LSTM or GRU
+    else:  # sequence-based
         _, _, test_gen = create_sequence_generators(
             test_df, test_df, test_df,
             sequence_length=SEQUENCE_LENGTH,
@@ -329,7 +329,7 @@ if __name__ == "__main__":
         '--model-type',
         type=str,
         required=True,
-        choices=['mobilenetv2', 'lstm', 'gru'],
+        choices=['mobilenetv2', 'resnet50', 'efficientnetb0', 'lstm', 'gru', '3d_cnn'],
         help='Model architecture'
     )
     parser.add_argument(

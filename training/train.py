@@ -6,6 +6,7 @@ Handles training loop, callbacks, checkpoints, and TensorBoard logging.
 
 import sys
 import logging
+import shutil
 import argparse
 from pathlib import Path
 from datetime import datetime
@@ -132,6 +133,25 @@ def get_callbacks(
     return callbacks_list
 
 
+def cleanup_old_checkpoints(model_prefix: str, checkpoint_dir: Path, keep: int = 3) -> None:
+    """
+    Keep only the latest `keep` checkpoint folders for the given model prefix.
+    """
+    if not checkpoint_dir.exists():
+        return
+    candidates = sorted(
+        [p for p in checkpoint_dir.iterdir() if p.is_dir() and p.name.startswith(model_prefix + "_")],
+        key=lambda p: p.stat().st_mtime,
+        reverse=True
+    )
+    for old_path in candidates[keep:]:
+        try:
+            shutil.rmtree(old_path)
+            logger.info(f"Removed old checkpoint: {old_path}")
+        except Exception as exc:
+            logger.warning(f"Failed to remove {old_path}: {exc}")
+
+
 def train_model(
     model_type: str,
     train_csv: Path,
@@ -170,12 +190,12 @@ def train_model(
     
     # Create data generators
     logger.info("\nCreating data generators...")
-    if model_type == 'mobilenetv2':
+    if model_type in ['mobilenetv2', 'resnet50', 'efficientnetb0']:
         train_gen, val_gen, _ = create_frame_generators(
             train_df, val_df, val_df,  # Use val_df for test_gen (placeholder)
             batch_size=batch_size
         )
-    else:  # LSTM or GRU
+    else:  # sequence-based models
         train_gen, val_gen, _ = create_sequence_generators(
             train_df, val_df, val_df,
             sequence_length=SEQUENCE_LENGTH,
@@ -219,6 +239,9 @@ def train_model(
     final_model_path = MODELS_DIR / f"{model_type}_final.keras"
     model.save(final_model_path)
     logger.info(f"\nFinal model saved: {final_model_path}")
+
+    # Cleanup old checkpoints (keep latest 3 for this model type)
+    cleanup_old_checkpoints(model_type, CHECKPOINTS_DIR, keep=3)
     
     # Training summary
     logger.info("\n" + "=" * 80)
@@ -246,7 +269,7 @@ if __name__ == "__main__":
         '--model',
         type=str,
         required=True,
-        choices=['mobilenetv2', 'lstm', 'gru'],
+        choices=['mobilenetv2', 'resnet50', 'efficientnetb0', 'lstm', 'gru', '3d_cnn'],
         help='Model architecture to train'
     )
     parser.add_argument(

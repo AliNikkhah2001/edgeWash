@@ -131,6 +131,26 @@ MODEL_CONFIGS = {
         'dropout_rate': 0.5,
         'input_shape': (*IMG_SIZE, 3)
     },
+    'resnet50': {
+        'name': 'ResNet50 Frame Classifier',
+        'type': 'frame-based',
+        'backbone': 'ResNet50',
+        'pretrained_weights': 'imagenet',
+        'freeze_backbone': True,
+        'classifier_units': [512, 256],
+        'dropout_rate': 0.5,
+        'input_shape': (*IMG_SIZE, 3)
+    },
+    'efficientnetb0': {
+        'name': 'EfficientNetB0 Frame Classifier',
+        'type': 'frame-based',
+        'backbone': 'EfficientNetB0',
+        'pretrained_weights': 'imagenet',
+        'freeze_backbone': True,
+        'classifier_units': [256],
+        'dropout_rate': 0.4,
+        'input_shape': (*IMG_SIZE, 3)
+    },
     'lstm': {
         'name': 'LSTM Temporal Classifier',
         'type': 'sequence-based',
@@ -151,6 +171,20 @@ MODEL_CONFIGS = {
         'freeze_backbone': True,
         'gru_units': 128,
         'dense_units': [64],
+        'dropout_rate': 0.5,
+        'sequence_length': SEQUENCE_LENGTH,
+        'input_shape': (SEQUENCE_LENGTH, *IMG_SIZE, 3)
+    },
+    '3d_cnn': {
+        'name': '3D CNN Temporal Classifier',
+        'type': 'sequence-based',
+        'backbone': 'custom_3dcnn',
+        'pretrained_weights': None,
+        'freeze_backbone': False,
+        'conv_filters': [32, 64, 128],
+        'kernel_size': (3, 3, 3),
+        'pool_size': (1, 2, 2),
+        'dense_units': [256],
         'dropout_rate': 0.5,
         'sequence_length': SEQUENCE_LENGTH,
         'input_shape': (SEQUENCE_LENGTH, *IMG_SIZE, 3)
@@ -205,3 +239,6 @@ RANDOM_SEED = 42
 # ============================================================================
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
+
+# Sampling options (used in notebook to explore frame skipping)
+FRAME_SKIP_OPTIONS = [1, 2, 4]
