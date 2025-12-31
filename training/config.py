@@ -94,6 +94,13 @@ CLASS_NAMES = [
 
 # Class mapping for Kaggle dataset
 KAGGLE_CLASS_MAPPING = {
+    '0': 0,
+    '1': 1,
+    '2': 2,
+    '3': 3,
+    '4': 4,
+    '5': 5,
+    '6': 6,
     'step1': 1,
     'step2': 2,
     'step3': 3,

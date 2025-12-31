@@ -5,7 +5,9 @@ Handles frame extraction from videos, dataset organization, and train/val/test s
 """
 
 import sys
+import csv
 import json
+import random
 import logging
 import cv2
 import numpy as np
@@ -119,13 +121,25 @@ def load_kaggle_dataset(kaggle_dir: Path) -> pd.DataFrame:
         logger.error(f"Kaggle dataset not found: {dataset_root}")
         return pd.DataFrame(records)
     
+    def _class_id_from_folder(folder_name: str) -> int:
+        name_lower = folder_name.lower()
+        if name_lower.isdigit():
+            class_id = int(name_lower)
+            if 0 <= class_id < len(CLASS_NAMES):
+                return class_id
+        digits = "".join(ch for ch in name_lower if ch.isdigit())
+        if digits:
+            class_id = int(digits)
+            if 0 <= class_id < len(CLASS_NAMES):
+                return class_id
+        return KAGGLE_CLASS_MAPPING.get(name_lower, 0)
+
     # Iterate through class folders
     for class_folder in sorted(dataset_root.iterdir()):
         if not class_folder.is_dir():
             continue
         
-        class_name_lower = class_folder.name.lower()
-        class_id = KAGGLE_CLASS_MAPPING.get(class_name_lower, 0)
+        class_id = _class_id_from_folder(class_folder.name)
         
         # Find all video files in this class folder
         for video_file in class_folder.glob('*'):
@@ -220,6 +234,296 @@ def load_metc_annotations(metc_dir: Path) -> List[dict]:
                 logger.error(f"Failed to load annotations from {json_path}: {e}")
     
     return annotations
+
+
+def _majority_vote(labels: List[int], total_movements: int) -> int:
+    counts = [0] * total_movements
+    for el in labels:
+        counts[int(el)] += 1
+    best = 0
+    for i in range(1, total_movements):
+        if counts[best] < counts[i]:
+            best = i
+    majority = (len(labels) + 2) // 2
+    if counts[best] < majority:
+        return -1
+    return best
+
+
+def _discount_reaction_indeterminacy(labels: List[int], reaction_frames: int) -> List[int]:
+    new_labels = [u for u in labels]
+    n = len(labels) - 1
+    for i in range(n):
+        if i == 0 or labels[i] != labels[i + 1] or i == n - 1:
+            start = max(0, i - reaction_frames)
+            end = i
+            for j in range(start, end):
+                new_labels[j] = -1
+            start = i
+            end = min(n + 1, i + reaction_frames)
+            for j in range(start, end):
+                new_labels[j] = -1
+    return new_labels
+
+
+def _select_frames_to_save(
+    is_washing: List[int],
+    codes: List[int],
+    movement0_prop: float = 1.0
+) -> dict:
+    old_code = -1
+    old_saved = False
+    num_snippets = 0
+    mapping = {}
+    current_snippet = {}
+    for i in range(len(is_washing)):
+        new_code = codes[i]
+        new_saved = (is_washing[i] == 2 and new_code != -1)
+        if new_saved != old_saved:
+            if new_saved:
+                num_snippets += 1
+                current_snippet = {}
+            else:
+                if old_code != 0 or random.random() < movement0_prop:
+                    for key in current_snippet:
+                        mapping[key] = current_snippet[key]
+
+        if new_saved:
+            current_snippet_frame = len(current_snippet)
+            current_snippet[i] = (current_snippet_frame, num_snippets, new_code)
+        old_saved = new_saved
+        old_code = new_code
+
+    if old_saved:
+        if old_code != 0 or random.random() < movement0_prop:
+            for key in current_snippet:
+                mapping[key] = current_snippet[key]
+
+    return mapping
+
+
+def _find_annotations_dir(video_path: Path) -> Optional[Path]:
+    for parent in video_path.parents:
+        ann_dir = parent / "Annotations"
+        if ann_dir.exists():
+            return ann_dir
+    return None
+
+
+def _load_frame_annotations(
+    video_path: Path,
+    annotator_prefix: str,
+    total_annotators: int
+) -> Tuple[List[List[Tuple[bool, int]]], int]:
+    ann_dir = _find_annotations_dir(video_path)
+    if not ann_dir:
+        return [], 0
+    annotations = []
+    for a in range(1, total_annotators + 1):
+        annotator_dir = ann_dir / f"{annotator_prefix}{a}"
+        json_path = annotator_dir / f"{video_path.stem}.json"
+        if not json_path.exists():
+            continue
+        try:
+            with open(json_path, "r") as f:
+                data = json.load(f)
+            a_annotations = [
+                (data["labels"][i]["is_washing"], data["labels"][i]["code"])
+                for i in range(len(data["labels"]))
+            ]
+            annotations.append(a_annotations)
+        except Exception as exc:
+            logger.warning(f"Failed to load annotations from {json_path}: {exc}")
+    return annotations, len(annotations)
+
+
+def _frame_labels_from_annotations(
+    annotations: List[List[Tuple[bool, int]]],
+    total_movements: int,
+    reaction_frames: int
+) -> Tuple[List[int], List[int]]:
+    num_annotators = len(annotations)
+    if num_annotators == 0:
+        return [], []
+    num_frames = len(annotations[0])
+    is_washing = []
+    codes = []
+    for frame_num in range(num_frames):
+        frame_annotations = [annotations[a][frame_num] for a in range(num_annotators)]
+        frame_is_washing_any = any(frame_annotations[a][0] for a in range(num_annotators))
+        frame_is_washing_all = all(frame_annotations[a][0] for a in range(num_annotators))
+        frame_codes = [frame_annotations[a][1] for a in range(num_annotators)]
+        frame_codes = [0 if code == 7 else code for code in frame_codes]
+
+        if frame_is_washing_all:
+            frame_is_washing = 2
+        elif frame_is_washing_any:
+            frame_is_washing = 1
+        else:
+            frame_is_washing = 0
+
+        is_washing.append(frame_is_washing)
+        if frame_is_washing:
+            codes.append(_majority_vote(frame_codes, total_movements))
+        else:
+            codes.append(-1)
+
+    is_washing = _discount_reaction_indeterminacy(is_washing, reaction_frames)
+    codes = _discount_reaction_indeterminacy(codes, reaction_frames)
+    return is_washing, codes
+
+
+def _load_pskus_split(pskus_dir: Path) -> Tuple[set, set]:
+    csv_path = pskus_dir / "statistics-with-locations.csv"
+    if not csv_path.exists():
+        repo_root = Path(__file__).resolve().parents[1]
+        fallback = repo_root / "code/edgewash/dataset-pskus/statistics-with-locations.csv"
+        if fallback.exists():
+            csv_path = fallback
+            logger.info(f"Using fallback PSKUS split file: {csv_path}")
+    testfiles = set()
+    trainvalfiles = set()
+    try:
+        with open(csv_path, "r") as csv_file:
+            for row in csv.reader(csv_file):
+                if row and row[0] == "filename":
+                    continue
+                if not row:
+                    continue
+                filename = row[0]
+                location = row[1] if len(row) > 1 else ""
+                if location == "Reanimācija":
+                    testfiles.add(filename)
+                elif location != "unknown":
+                    trainvalfiles.add(filename)
+    except Exception as exc:
+        logger.warning(f"Failed to read PSKUS split CSV {csv_path}: {exc}")
+    return testfiles, trainvalfiles
+
+
+def preprocess_pskus_dataset(pskus_dir: Path, output_dir: Path) -> pd.DataFrame:
+    records = []
+    random.seed(RANDOM_SEED)
+
+    testfiles, trainvalfiles = _load_pskus_split(pskus_dir)
+    movement0_prop = 0.2
+    total_annotators = 8
+    total_movements = 8
+    fps = 30
+    reaction_frames = fps // 2
+
+    for video_path in pskus_dir.rglob("*.mp4"):
+        filename = video_path.name
+        if filename in testfiles:
+            split = "test"
+        elif filename in trainvalfiles:
+            split = "trainval"
+        else:
+            continue
+
+        annotations, num_annotators = _load_frame_annotations(
+            video_path,
+            annotator_prefix="Annotator",
+            total_annotators=total_annotators
+        )
+        if num_annotators <= 1:
+            continue
+
+        is_washing, codes = _frame_labels_from_annotations(
+            annotations,
+            total_movements=total_movements,
+            reaction_frames=reaction_frames
+        )
+        mapping = _select_frames_to_save(is_washing, codes, movement0_prop=movement0_prop)
+        if not mapping:
+            continue
+
+        frames_dir = output_dir / "pskus" / split
+        vidcap = cv2.VideoCapture(str(video_path))
+        is_success, image = vidcap.read()
+        frame_number = 0
+        while is_success:
+            if frame_number in mapping:
+                new_frame_num, snippet_num, code = mapping[frame_number]
+                subfolder = str(code)
+                out_dir = frames_dir / subfolder
+                out_dir.mkdir(parents=True, exist_ok=True)
+                filename_out = f"frame_{new_frame_num}_snippet_{snippet_num}_{video_path.stem}.jpg"
+                save_path = out_dir / filename_out
+                cv2.imwrite(str(save_path), image)
+                records.append({
+                    "frame_path": str(save_path),
+                    "class_id": int(code),
+                    "class_name": CLASS_NAMES[int(code)],
+                    "video_id": video_path.stem,
+                    "frame_idx": new_frame_num,
+                    "dataset": "pskus",
+                    "split": split
+                })
+            is_success, image = vidcap.read()
+            frame_number += 1
+        vidcap.release()
+
+    return pd.DataFrame(records)
+
+
+def preprocess_metc_dataset(metc_dir: Path, output_dir: Path) -> pd.DataFrame:
+    records = []
+    random.seed(RANDOM_SEED)
+
+    total_annotators = 1
+    total_movements = 7
+    fps = 16
+    reaction_frames = fps // 2
+    test_proportion = 0.25
+
+    for video_path in metc_dir.rglob("*.mp4"):
+        split = "test" if random.random() < test_proportion else "trainval"
+
+        annotations, num_annotators = _load_frame_annotations(
+            video_path,
+            annotator_prefix="Annotator_",
+            total_annotators=total_annotators
+        )
+        if num_annotators == 0:
+            continue
+
+        is_washing, codes = _frame_labels_from_annotations(
+            annotations,
+            total_movements=total_movements,
+            reaction_frames=reaction_frames
+        )
+        mapping = _select_frames_to_save(is_washing, codes, movement0_prop=1.0)
+        if not mapping:
+            continue
+
+        frames_dir = output_dir / "metc" / split
+        vidcap = cv2.VideoCapture(str(video_path))
+        is_success, image = vidcap.read()
+        frame_number = 0
+        while is_success:
+            if frame_number in mapping:
+                new_frame_num, snippet_num, code = mapping[frame_number]
+                subfolder = str(code)
+                out_dir = frames_dir / subfolder
+                out_dir.mkdir(parents=True, exist_ok=True)
+                filename_out = f"frame_{new_frame_num}_snippet_{snippet_num}_{video_path.stem}.jpg"
+                save_path = out_dir / filename_out
+                cv2.imwrite(str(save_path), image)
+                records.append({
+                    "frame_path": str(save_path),
+                    "class_id": int(code),
+                    "class_name": CLASS_NAMES[int(code)],
+                    "video_id": video_path.stem,
+                    "frame_idx": new_frame_num,
+                    "dataset": "metc",
+                    "split": split
+                })
+            is_success, image = vidcap.read()
+            frame_number += 1
+        vidcap.release()
+
+    return pd.DataFrame(records)
 
 
 def preprocess_clip_level_dataset(
@@ -349,6 +653,26 @@ def preprocess_frame_level_dataset(
     return pd.DataFrame(records)
 
 
+def _split_train_val_by_video(
+    frames_df: pd.DataFrame,
+    train_ratio: float = TRAIN_RATIO,
+    val_ratio: float = VAL_RATIO,
+    random_state: int = RANDOM_SEED
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
+    unique_videos = frames_df["video_id"].unique()
+    video_to_class = frames_df.groupby("video_id")["class_id"].first()
+    val_size = val_ratio / (train_ratio + val_ratio)
+    train_videos, val_videos = train_test_split(
+        unique_videos,
+        test_size=val_size,
+        random_state=random_state,
+        stratify=video_to_class[unique_videos]
+    )
+    train_df = frames_df[frames_df["video_id"].isin(train_videos)].reset_index(drop=True)
+    val_df = frames_df[frames_df["video_id"].isin(val_videos)].reset_index(drop=True)
+    return train_df, val_df
+
+
 def split_dataset(
     frames_df: pd.DataFrame,
     train_ratio: float = TRAIN_RATIO,
@@ -358,41 +682,39 @@ def split_dataset(
 ) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     """
     Split dataset into train/val/test by video (to avoid data leakage).
-    
-    Args:
-        frames_df: DataFrame with frame data
-        train_ratio: Training set ratio
-        val_ratio: Validation set ratio
-        test_ratio: Test set ratio
-        random_state: Random seed for reproducibility
-    
-    Returns:
-        Tuple of (train_df, val_df, test_df)
+    If frames_df includes a 'split' column with 'trainval'/'test',
+    honor that split and only split trainval into train/val.
     """
-    # Get unique videos
-    unique_videos = frames_df['video_id'].unique()
-    video_to_class = frames_df.groupby('video_id')['class_id'].first()
-    
-    # Stratified split by class
+    if "split" in frames_df.columns and frames_df["split"].notna().any():
+        test_df = frames_df[frames_df["split"] == "test"].reset_index(drop=True)
+        trainval_df = frames_df[frames_df["split"] != "test"].reset_index(drop=True)
+        if trainval_df.empty:
+            return frames_df, frames_df.iloc[0:0].copy(), test_df
+        train_df, val_df = _split_train_val_by_video(
+            trainval_df,
+            train_ratio=train_ratio,
+            val_ratio=val_ratio,
+            random_state=random_state
+        )
+        return train_df, val_df, test_df
+
+    unique_videos = frames_df["video_id"].unique()
+    video_to_class = frames_df.groupby("video_id")["class_id"].first()
     train_videos, temp_videos = train_test_split(
         unique_videos,
         test_size=(val_ratio + test_ratio),
         random_state=random_state,
         stratify=video_to_class[unique_videos]
     )
-    
     val_videos, test_videos = train_test_split(
         temp_videos,
         test_size=test_ratio / (val_ratio + test_ratio),
         random_state=random_state,
         stratify=video_to_class[temp_videos]
     )
-    
-    # Create split dataframes
-    train_df = frames_df[frames_df['video_id'].isin(train_videos)].reset_index(drop=True)
-    val_df = frames_df[frames_df['video_id'].isin(val_videos)].reset_index(drop=True)
-    test_df = frames_df[frames_df['video_id'].isin(test_videos)].reset_index(drop=True)
-    
+    train_df = frames_df[frames_df["video_id"].isin(train_videos)].reset_index(drop=True)
+    val_df = frames_df[frames_df["video_id"].isin(val_videos)].reset_index(drop=True)
+    test_df = frames_df[frames_df["video_id"].isin(test_videos)].reset_index(drop=True)
     return train_df, val_df, test_df
 
 
@@ -435,17 +757,10 @@ def preprocess_all_datasets(use_kaggle: bool = True, use_pskus: bool = False, us
     
     # Process PSKUS dataset
     if use_pskus:
-        pskus_dir = RAW_DIR / 'pskus'
-        if (pskus_dir / 'summary.csv').exists():
+        pskus_dir = RAW_DIR / "pskus"
+        if any(pskus_dir.glob("DataSet*")):
             logger.info("\n[2/3] Processing PSKUS dataset...")
-            pskus_annotations = load_pskus_annotations(pskus_dir)
-            logger.info(f"Loaded {len(pskus_annotations)} videos")
-            
-            pskus_frames = preprocess_frame_level_dataset(
-                pskus_annotations,
-                PROCESSED_DIR,
-                'pskus'
-            )
+            pskus_frames = preprocess_pskus_dataset(pskus_dir, PROCESSED_DIR)
             logger.info(f"Extracted {len(pskus_frames)} frames")
             all_frames.append(pskus_frames)
         else:
@@ -453,17 +768,10 @@ def preprocess_all_datasets(use_kaggle: bool = True, use_pskus: bool = False, us
     
     # Process METC dataset
     if use_metc:
-        metc_dir = RAW_DIR / 'metc'
-        if (metc_dir / 'summary.csv').exists():
+        metc_dir = RAW_DIR / "metc"
+        if any(metc_dir.glob("Interface_number_*")):
             logger.info("\n[3/3] Processing METC dataset...")
-            metc_annotations = load_metc_annotations(metc_dir)
-            logger.info(f"Loaded {len(metc_annotations)} videos")
-            
-            metc_frames = preprocess_frame_level_dataset(
-                metc_annotations,
-                PROCESSED_DIR,
-                'metc'
-            )
+            metc_frames = preprocess_metc_dataset(metc_dir, PROCESSED_DIR)
             logger.info(f"Extracted {len(metc_frames)} frames")
             all_frames.append(metc_frames)
         else:
