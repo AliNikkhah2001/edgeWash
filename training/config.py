@@ -138,9 +138,12 @@ AUGMENTATION_CONFIG = {
     'shear_range': 0.1,
     'zoom_range': 0.1,
     'horizontal_flip': True,
+    'mid_flip': True,
     'brightness_range': (0.9, 1.1),
+    'reverse_sequence': True,
     'fill_mode': 'nearest'
 }
+CONSISTENT_VIDEO_AUG = True
 
 # ============================================================================
 # Model Architectures
