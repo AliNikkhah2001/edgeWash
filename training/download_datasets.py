@@ -10,6 +10,7 @@ import logging
 import zipfile
 import tarfile
 import requests
+import subprocess
 from pathlib import Path
 from typing import Optional
 from tqdm import tqdm
@@ -122,7 +123,7 @@ def extract_tar(tar_path: Path, extract_to: Path, remove_after: bool = True) -> 
         logger.info(f"Extracting: {tar_path.name}")
         extract_to.mkdir(parents=True, exist_ok=True)
         
-        with tarfile.open(tar_path, 'r') as tar_ref:
+        with tarfile.open(tar_path, 'r:*') as tar_ref:
             tar_ref.extractall(extract_to)
         
         logger.info(f"Extracted to: {extract_to}")
@@ -152,12 +153,9 @@ def download_zenodo_dataset(zenodo_id: str, output_dir: Path) -> bool:
         True if download successful, False otherwise
     """
     try:
-        import subprocess
-        
         logger.info(f"Downloading Zenodo record {zenodo_id}...")
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        # Use zenodo_get command
         result = subprocess.run(
             ['zenodo_get', '-r', zenodo_id, '-o', str(output_dir)],
             capture_output=True,
@@ -172,7 +170,9 @@ def download_zenodo_dataset(zenodo_id: str, output_dir: Path) -> bool:
         logger.error("zenodo_get not found. Install with: pip install zenodo-get")
         return False
     except subprocess.CalledProcessError as e:
-        logger.error(f"Zenodo download failed: {e.stderr}")
+        logger.error(f"Zenodo download failed (returncode={e.returncode})")
+        logger.error(f"STDOUT: {e.stdout}")
+        logger.error(f"STDERR: {e.stderr}")
         return False
     except Exception as e:
         logger.error(f"Zenodo download failed: {e}")
@@ -230,7 +230,7 @@ def download_pskus_dataset() -> bool:
     
     logger.warning(
         f"Downloading {pskus_info['name']} ({pskus_info['size_gb']:.1f} GB). "
-        f"This may take 30-60 minutes depending on connection speed."
+        f"This may take 30-60 minutes depending on connection speed. Progress below shows zenodo_get output."
     )
     
     # Download using zenodo_get
@@ -279,6 +279,39 @@ def download_metc_dataset() -> bool:
     
     logger.info(f"METC dataset ready: {metc_dir}")
     return True
+
+
+def download_synthetic_blender_rozakar() -> bool:
+    """
+    Download synthetic Blender dataset (multiple Google Drive parts).
+    """
+    synth_info = DATASETS['synthetic_blender_rozakar']
+    synth_dir = RAW_DIR / 'synthetic_blender_rozakar'
+    synth_dir.mkdir(parents=True, exist_ok=True)
+    marker = synth_dir / '.complete'
+    if marker.exists():
+        logger.info(f"Synthetic dataset already present: {synth_dir}")
+        return True
+    links = synth_info.get('gdrive_links', [])
+    if not links:
+        logger.error("No Google Drive links configured for synthetic_blender_rozakar")
+        return False
+    logger.info(f"Downloading {synth_info['name']} (~{synth_info.get('size_gb','?')} GB) in {len(links)} parts...")
+    success = True
+    for idx, link in enumerate(links, start=1):
+        out_file = synth_dir / f"part{idx}.bin"
+        logger.info(f"Part {idx}/{len(links)} -> {out_file.name}")
+        if out_file.exists():
+            logger.info(f"  Already exists: {out_file}")
+            continue
+        if not download_file(link, out_file, chunk_size=1024*1024):
+            logger.error(f"Failed part {idx}: {link}")
+            success = False
+            break
+    if success:
+        marker.touch()
+        logger.info(f"Synthetic dataset parts downloaded to: {synth_dir}")
+    return success
 
 
 def verify_datasets() -> dict:
@@ -348,6 +381,13 @@ def download_all_datasets(skip_large: bool = False) -> None:
             logger.info("✓ METC dataset ready")
         else:
             logger.error("✗ METC dataset download failed")
+
+    # Synthetic dataset (optional)
+    logger.info("\n[4/4] Downloading Synthetic Blender Rozakar dataset (optional)...")
+    if download_synthetic_blender_rozakar():
+        logger.info("✓ Synthetic dataset ready")
+    else:
+        logger.warning("✗ Synthetic dataset download failed or skipped")
     
     # Verify all datasets
     logger.info("\n" + "=" * 80)

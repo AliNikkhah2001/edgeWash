@@ -47,6 +47,21 @@ DATASETS = {
         'files': ['Interface_number_1.zip', 'Interface_number_2.zip', 'Interface_number_3.zip'],
         'metadata': ['summary.csv', 'statistics.csv']
     },
+    'synthetic_blender_rozakar': {
+        'name': 'Synthetic Hand-Washing Gesture (Özakar & Gedikli 2025)',
+        'gdrive_links': [
+            'https://drive.google.com/uc?id=1EW3JQvElcuXzawxEMRkA8YXwK_Ipiv-p&export=download',
+            'https://drive.google.com/uc?id=163TsrDe4q5KTQGCv90JRYFkCs7AGxFip&export=download',
+            'https://drive.google.com/uc?id=1GxyTYfSodumH78NbjWdmbjm8JP8AOkAY&export=download',
+            'https://drive.google.com/uc?id=1IoRsgBBr8qoC3HO-vEr6E7K4UZ6ku6-1&export=download',
+            'https://drive.google.com/uc?id=1svCYnwDazy5FN1DYSgqbGscvDKL_YnID&export=download'
+        ],
+        'type': 'frame-level',
+        'classes': 8,
+        'size_gb': 6.0,
+        'modalities': ['rgb', 'depth', 'depth_isolated', 'masks'],
+        'structure': 'character/environment/gesture/modality/*.png'
+    },
     'kaggle': {
         'name': 'Kaggle WHO6',
         'url': 'https://github.com/atiselsts/data/raw/master/kaggle-dataset-6classes.tar',
