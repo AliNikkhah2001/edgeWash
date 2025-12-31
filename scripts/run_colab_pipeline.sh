@@ -39,6 +39,10 @@ SKIP_PREPROCESS=${SKIP_PREPROCESS:-false}
 SKIP_TRAIN=${SKIP_TRAIN:-false}
 SKIP_EVAL=${SKIP_EVAL:-false}
 RESUME_FROM=${RESUME_FROM:-}
+TRAIN_CSV_OVERRIDE=${TRAIN_CSV_OVERRIDE:-}
+VAL_CSV_OVERRIDE=${VAL_CSV_OVERRIDE:-}
+TEST_CSV_OVERRIDE=${TEST_CSV_OVERRIDE:-}
+USE_EXISTING_PROCESSED=${USE_EXISTING_PROCESSED:-true}
 TB_PID=""
 
 if [[ ! -d "$PROJECT_ROOT/training" ]]; then
@@ -115,71 +119,67 @@ cleanup() {
 }
 trap cleanup EXIT
 
-if [[ "$SKIP_DOWNLOAD" == "false" ]]; then
-  log "Dataset download step..."
-  DATASETS_ENV="$DATASETS" $PYTHON - <<'PY'
-import os, sys
-import download_datasets as dl
-datasets = {d.strip().lower() for chunk in os.environ.get("DATASETS_ENV","kaggle").replace(",", " ").split() for d in [chunk] if d.strip()}
-if not datasets:
-    datasets = {"kaggle"}
-print(f"Datasets requested: {sorted(datasets)}")
-ok = True
-if "kaggle" in datasets:
-    ok = dl.download_kaggle_dataset() and ok
-if "pskus" in datasets:
-    ok = dl.download_pskus_dataset() and ok
-if "metc" in datasets:
-    ok = dl.download_metc_dataset() and ok
-status = dl.verify_datasets()
-print("Dataset status:")
-for name, info in status.items():
-    icon = "✓" if info["exists"] else "✗"
-    print(f"  {icon} {info['name']}: {info['num_files']} files at {info['path']}")
-if not ok:
-    sys.exit("Dataset download failed; see logs above.")
-PY
-else
-  log "Skipping dataset download (SKIP_DOWNLOAD=true)"
+# Processed CSV paths (override if you already have them)
+TRAIN_CSV_PATH=${TRAIN_CSV_OVERRIDE:-$PROJECT_ROOT/datasets/processed/train.csv}
+VAL_CSV_PATH=${VAL_CSV_OVERRIDE:-$PROJECT_ROOT/datasets/processed/val.csv}
+TEST_CSV_PATH=${TEST_CSV_OVERRIDE:-$PROJECT_ROOT/datasets/processed/test.csv}
+
+PROCESSED_READY=false
+if [[ -f "$TRAIN_CSV_PATH" && -f "$VAL_CSV_PATH" && -f "$TEST_CSV_PATH" ]]; then
+  PROCESSED_READY=true
 fi
 
-if [[ "$SKIP_PREPROCESS" == "false" ]]; then
-  log "Preprocessing datasets..."
-  DATASETS_ENV="$DATASETS" $PYTHON - <<'PY'
-import os, sys
-from pathlib import Path
-import preprocess_data
-datasets = {d.strip().lower() for chunk in os.environ.get("DATASETS_ENV","kaggle").replace(",", " ").split() for d in [chunk] if d.strip()}
-use_kaggle = "kaggle" in datasets
-use_pskus = "pskus" in datasets
-use_metc = "metc" in datasets
-result = preprocess_data.preprocess_all_datasets(use_kaggle=use_kaggle, use_pskus=use_pskus, use_metc=use_metc)
-if not result:
-    sys.exit("Preprocessing failed")
-print("Preprocessed files:")
-for k, v in result.items():
-    print(f"  {k}: {v}")
-PY
-else
-  log "Skipping preprocessing (SKIP_PREPROCESS=true)"
+# Parse dataset list
+DATASET_LIST=()
+for ds in $(echo "$DATASETS" | tr ',' ' '); do
+  ds_lower=$(echo "$ds" | tr '[:upper:]' '[:lower:]')
+  if [[ -n "$ds_lower" ]]; then
+    DATASET_LIST+=("$ds_lower")
+  fi
+done
+if [[ ${#DATASET_LIST[@]} -eq 0 ]]; then
+  DATASET_LIST=("kaggle")
 fi
 
-if [[ "$SKIP_TRAIN" == "false" ]]; then
+cleanup_dataset() {
+  local name="$1"
+  log "Cleaning up dataset artifacts for $name to save space..."
+  rm -rf "$PROJECT_ROOT/datasets/raw/$name" || true
+  # Remove extracted frames to free space
+  find "$PROJECT_ROOT/datasets/processed" -type f -name '*.jpg' -delete || true
+  # Remove empty dirs
+  find "$PROJECT_ROOT/datasets/processed" -type d -empty -delete || true
+}
+
+run_train_eval() {
+  local name_label="$1"
+  if [[ ! -f "$TRAIN_CSV_PATH" || ! -f "$VAL_CSV_PATH" || ! -f "$TEST_CSV_PATH" ]]; then
+    log "Processed CSVs missing; cannot train/eval. train=$TRAIN_CSV_PATH val=$VAL_CSV_PATH test=$TEST_CSV_PATH"
+    return 1
+  fi
+
+  if [[ "$SKIP_TRAIN" == "true" ]]; then
+    log "SKIP_TRAIN=true; skipping training for $name_label"
+    return 0
+  fi
+
   for MODEL in $TRAIN_MODELS; do
     MODEL_LOWER=$(echo "$MODEL" | tr '[:upper:]' '[:lower:]')
     case "$MODEL_LOWER" in
-      mobilenetv2) BATCH="$BATCH_MOBILENET" ;;
+      mobilenetv2|resnet50|efficientnetb0) BATCH="$BATCH_MOBILENET" ;;
+      3d_cnn) BATCH=12 ;;
       lstm|gru) BATCH="$BATCH_SEQUENCE" ;;
-      *) log "Unknown model: $MODEL_LOWER"; exit 1 ;;
+      *) log "Unknown model: $MODEL_LOWER"; return 1 ;;
     esac
-    log "Training $MODEL_LOWER (epochs=$EPOCHS batch=$BATCH lr=$LEARNING_RATE)..."
-    MODEL_TYPE="$MODEL_LOWER" BATCH_SIZE="$BATCH" EPOCHS="$EPOCHS" LR="$LEARNING_RATE" RESUME_FROM_ENV="$RESUME_FROM" $PYTHON - <<'PY'
+    log "Training $MODEL_LOWER on $name_label (epochs=$EPOCHS batch=$BATCH lr=$LEARNING_RATE)..."
+    MODEL_TYPE="$MODEL_LOWER" BATCH_SIZE="$BATCH" EPOCHS="$EPOCHS" LR="$LEARNING_RATE" RESUME_FROM_ENV="$RESUME_FROM" \
+    TRAIN_CSV_ENV="$TRAIN_CSV_PATH" VAL_CSV_ENV="$VAL_CSV_PATH" $PYTHON - <<'PY'
 import os, json
 from pathlib import Path
 import train
 model_type = os.environ["MODEL_TYPE"]
-train_csv = Path("datasets/processed/train.csv")
-val_csv = Path("datasets/processed/val.csv")
+train_csv = Path(os.environ["TRAIN_CSV_ENV"])
+val_csv = Path(os.environ["VAL_CSV_ENV"])
 resume = os.environ.get("RESUME_FROM_ENV") or None
 if not train_csv.exists() or not val_csv.exists():
     raise SystemExit("Missing processed CSVs; run preprocessing first.")
@@ -193,6 +193,7 @@ result = train.train_model(
     resume_from=resume
 )
 print(json.dumps({
+    "dataset": os.environ.get("DATASET_NAME", "existing"),
     "model_type": model_type,
     "final_model": result["final_model_path"],
     "best_epoch": int(result["best_epoch"]) + 1,
@@ -200,38 +201,24 @@ print(json.dumps({
     "best_val_loss": float(result["history"]["val_loss"][result["best_epoch"]])
 }, indent=2))
 PY
-    LAST_CKPT=$(ls -dt "$PROJECT_ROOT/checkpoints/${MODEL_LOWER}_"* 2>/dev/null | head -n1 || true)
-    if [[ -n "$LAST_CKPT" ]]; then
-      log "Latest checkpoint dir for $MODEL_LOWER: $LAST_CKPT"
-    else
-      log "No checkpoint folder found for $MODEL_LOWER (check training logs)."
-    fi
-  done
-else
-  log "Skipping training (SKIP_TRAIN=true)"
-fi
 
-if [[ "$SKIP_EVAL" == "false" ]]; then
-  for MODEL in $TRAIN_MODELS; do
-    MODEL_LOWER=$(echo "$MODEL" | tr '[:upper:]' '[:lower:]')
-    case "$MODEL_LOWER" in
-      mobilenetv2) BATCH="$BATCH_MOBILENET" ;;
-      lstm|gru) BATCH="$BATCH_SEQUENCE" ;;
-      *) log "Unknown model: $MODEL_LOWER"; exit 1 ;;
-    esac
     FINAL_MODEL_PATH=$(ls "$PROJECT_ROOT/models/${MODEL_LOWER}_final.keras" 2>/dev/null | head -n1 || true)
     if [[ -z "$FINAL_MODEL_PATH" ]]; then
       log "Final model for $MODEL_LOWER not found; skipping evaluation."
       continue
     fi
-    log "Evaluating $MODEL_LOWER using $FINAL_MODEL_PATH ..."
-    MODEL_TYPE="$MODEL_LOWER" MODEL_PATH="$FINAL_MODEL_PATH" BATCH_SIZE="$BATCH" $PYTHON - <<'PY'
+    if [[ "$SKIP_EVAL" == "true" ]]; then
+      log "SKIP_EVAL=true; skipping evaluation for $MODEL_LOWER"
+      continue
+    fi
+    log "Evaluating $MODEL_LOWER on $name_label ..."
+    MODEL_TYPE="$MODEL_LOWER" MODEL_PATH="$FINAL_MODEL_PATH" BATCH_SIZE="$BATCH" TEST_CSV_ENV="$TEST_CSV_PATH" $PYTHON - <<'PY'
 import os, json
 from pathlib import Path
 import evaluate
 model_type = os.environ["MODEL_TYPE"]
 model_path = os.environ["MODEL_PATH"]
-test_csv = Path("datasets/processed/test.csv")
+test_csv = Path(os.environ["TEST_CSV_ENV"])
 if not test_csv.exists():
     raise SystemExit("Missing test.csv; run preprocessing.")
 results = evaluate.evaluate_model(
@@ -242,11 +229,82 @@ results = evaluate.evaluate_model(
     save_results=True
 )
 summary = {k: v for k, v in results.items() if isinstance(v, (float, int, str))}
+summary["dataset"] = os.environ.get("DATASET_NAME", "existing")
 print(json.dumps(summary, indent=2))
 PY
   done
-else
-  log "Skipping evaluation (SKIP_EVAL=true)"
+}
+
+TRAIN_EVAL_RAN=false
+
+process_dataset() {
+  local name="$1"
+  log "==== Processing dataset: $name ===="
+
+  # If we already have processed CSVs and reuse is allowed, skip download/preprocess
+  if [[ "$USE_EXISTING_PROCESSED" == "true" && "$PROCESSED_READY" == "true" ]]; then
+    log "Processed CSVs already present (train/val/test). Skipping download/preprocess for $name."
+    run_train_eval "$name" && TRAIN_EVAL_RAN=true
+    return
+  fi
+
+  if [[ "$SKIP_DOWNLOAD" == "false" ]]; then
+    log "Downloading $name ..."
+    DATASET_NAME="$name" $PYTHON - <<'PY'
+import os, sys
+import download_datasets as dl
+name = os.environ["DATASET_NAME"]
+if name == "kaggle":
+    ok = dl.download_kaggle_dataset()
+elif name == "pskus":
+    ok = dl.download_pskus_dataset()
+elif name == "metc":
+    ok = dl.download_metc_dataset()
+else:
+    raise SystemExit(f"Unknown dataset {name}")
+if not ok:
+    sys.exit(f"Download failed for {name}")
+status = dl.verify_datasets()
+info = status.get(name, {})
+print(f"{name}: exists={info.get('exists')} files={info.get('num_files')} path={info.get('path')}")
+PY
+  else
+    log "Skipping download (SKIP_DOWNLOAD=true)"
+  fi
+
+  if [[ "$SKIP_PREPROCESS" == "false" ]]; then
+    log "Preprocessing $name ..."
+    DATASET_NAME="$name" $PYTHON - <<'PY'
+import os, sys
+from pathlib import Path
+import preprocess_data
+name = os.environ["DATASET_NAME"]
+use_kaggle = name == "kaggle"
+use_pskus = name == "pskus"
+use_metc = name == "metc"
+result = preprocess_data.preprocess_all_datasets(use_kaggle=use_kaggle, use_pskus=use_pskus, use_metc=use_metc)
+if not result:
+    sys.exit(f"Preprocessing failed for {name}")
+print("Preprocessed files:")
+for k, v in result.items():
+    print(f"  {k}: {v}")
+PY
+  else
+    log "Skipping preprocessing (SKIP_PREPROCESS=true)"
+  fi
+
+  run_train_eval "$name" && TRAIN_EVAL_RAN=true
+  cleanup_dataset "$name"
+  log "==== Finished dataset: $name ===="
+}
+
+for ds in "${DATASET_LIST[@]}"; do
+  process_dataset "$ds"
+done
+
+if [[ "$TRAIN_EVAL_RAN" == "false" && "$USE_EXISTING_PROCESSED" == "true" && "$PROCESSED_READY" == "true" ]]; then
+  log "Existing processed CSVs detected; running train/eval without download/preprocess."
+  run_train_eval "existing_processed"
 fi
 
 log "Pipeline completed. Review $LOG_FILE for full details."
