@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import json
+import os
 import re
 import subprocess
 from datetime import datetime, timezone
@@ -171,9 +172,18 @@ def collect_text_blocks(base: Path) -> list[str]:
 
 
 def build_readme() -> str:
-    code_entries = collect_code_section()
-    papers = collect_papers_section()
-    datasets = collect_datasets_section()
+    hide_raw = os.environ.get("HIDE_TAGS", "")
+    hide_tags = [t.strip().lower() for t in hide_raw.replace(",", " ").split() if t.strip()]
+
+    def should_hide(tags: list[str]) -> bool:
+        if not hide_tags:
+            return False
+        lower_tags = [t.lower() for t in tags]
+        return any(h in tag for h in hide_tags for tag in lower_tags)
+
+    code_entries = [e for e in collect_code_section() if not should_hide(e["tags"])]
+    papers = [p for p in collect_papers_section() if not should_hide(p["tags"])]
+    datasets = [d for d in collect_datasets_section() if not should_hide(d["tags"])]
     ideas = collect_text_blocks(ROOT / "ideas")
     evaluations = collect_text_blocks(ROOT / "evaluation")
     models = collect_text_blocks(ROOT / "models")

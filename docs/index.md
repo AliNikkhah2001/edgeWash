@@ -7,6 +7,8 @@ layout: default
 Aggregated code, papers, datasets, models, and experiment ideas for automated handwashing assessment.
 _Last updated: 2025-12-30 20:59 UTC_
 
+> Tip: append `?hide=tag1,tag2` to the page URL to hide any codebase/dataset/paper whose tags contain those strings (case-insensitive).
+
 ## Structure
 - `code/`: cloned codebases and pipelines
 - `papers/`: papers with `summary.md`, `tags.md`, and `paper.pdf`
@@ -4476,3 +4478,20 @@ Paper: iWoar 2024
 - `.github/workflows/pages.yml` builds GitHub Pages from the generated docs.
 
 To add new assets, drop them in the appropriate folder with minimal metadata; the automation will refresh this page.
+
+<script>
+(function() {
+  const params = new URLSearchParams(window.location.search);
+  const hideParam = params.get('hide');
+  if (!hideParam) return;
+  const hideTags = hideParam.split(',').map(t => t.trim().toLowerCase()).filter(Boolean);
+  if (!hideTags.length) return;
+  document.querySelectorAll('li').forEach(li => {
+    const text = li.textContent.toLowerCase();
+    if (!text.includes('tags:')) return; // only hide entries that declare tags
+    if (hideTags.some(tag => text.includes(tag))) {
+      li.style.display = 'none';
+    }
+  });
+})();
+</script>
