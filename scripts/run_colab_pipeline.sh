@@ -31,9 +31,11 @@ DATASETS=${DATASETS:-kaggle}               # comma or space separated: kaggle,ps
 TRAIN_MODELS=${TRAIN_MODELS:-"mobilenetv2 lstm gru"}
 EPOCHS=${EPOCHS:-5}                        # bump to 20-50 for full runs
 LEARNING_RATE=${LEARNING_RATE:-1e-4}
-BATCH_MOBILENET=${BATCH_MOBILENET:-32}
-BATCH_SEQUENCE=${BATCH_SEQUENCE:-16}
-TB_PORT=${TB_PORT:-6006}
+BATCH_MOBILENET=${BATCH_MOBILENET:-64}
+BATCH_SEQUENCE=${BATCH_SEQUENCE:-32}
+AUTO_TUNE_BATCH=${AUTO_TUNE_BATCH:-true}
+TB_PORT=${TB_PORT:-6008}
+SANITY_CHECK=${SANITY_CHECK:-true}
 SKIP_DOWNLOAD=${SKIP_DOWNLOAD:-false}
 SKIP_PREPROCESS=${SKIP_PREPROCESS:-false}
 SKIP_TRAIN=${SKIP_TRAIN:-false}
@@ -43,6 +45,7 @@ TRAIN_CSV_OVERRIDE=${TRAIN_CSV_OVERRIDE:-}
 VAL_CSV_OVERRIDE=${VAL_CSV_OVERRIDE:-}
 TEST_CSV_OVERRIDE=${TEST_CSV_OVERRIDE:-}
 USE_EXISTING_PROCESSED=${USE_EXISTING_PROCESSED:-true}
+SKIP_DOWNLOAD_IF_PRESENT=${SKIP_DOWNLOAD_IF_PRESENT:-true}
 TB_PID=""
 
 if [[ ! -d "$PROJECT_ROOT/training" ]]; then
@@ -73,9 +76,11 @@ $PYTHON -m pip install --no-cache-dir -U pip setuptools wheel
 REQS=(scikit-learn pandas numpy opencv-python-headless matplotlib seaborn tqdm requests nbformat)
 $PYTHON -m pip install --no-cache-dir -U "${REQS[@]}"
 
+GPU_MEM_MB=0
 if command -v nvidia-smi >/dev/null 2>&1; then
   log "GPU status:"
   nvidia-smi || true
+  GPU_MEM_MB=$(nvidia-smi --query-gpu=memory.total --format=csv,noheader,nounits 2>/dev/null | head -n1 || echo 0)
 else
   log "nvidia-smi not available; GPU may be missing."
 fi
@@ -87,6 +92,16 @@ print(f"GPUs visible to TF: {tf.config.list_physical_devices('GPU')}")
 print(f"OpenCV: {cv2.__version__}")
 print(f"scikit-learn: {sklearn.__version__}")
 PY
+
+if [[ "$AUTO_TUNE_BATCH" == "true" && "$GPU_MEM_MB" -gt 0 ]]; then
+  BATCH_MOBILENET=$(( GPU_MEM_MB / 90 ))
+  BATCH_SEQUENCE=$(( GPU_MEM_MB / 180 ))
+  (( BATCH_MOBILENET < 64 )) && BATCH_MOBILENET=64
+  (( BATCH_MOBILENET > 256 )) && BATCH_MOBILENET=256
+  (( BATCH_SEQUENCE < 32 )) && BATCH_SEQUENCE=32
+  (( BATCH_SEQUENCE > 128 )) && BATCH_SEQUENCE=128
+  log "Auto-tuned batch sizes from GPU mem ${GPU_MEM_MB}MB -> frame: $BATCH_MOBILENET, sequence: $BATCH_SEQUENCE"
+fi
 
 mkdir -p "$PROJECT_ROOT"/{datasets/raw,datasets/processed,models,checkpoints,logs,results}
 export PYTHONPATH="$PROJECT_ROOT/training:${PYTHONPATH:-}"
@@ -100,6 +115,9 @@ if command -v tensorboard >/dev/null 2>&1; then
     if [[ "$IN_COLAB" == "true" ]]; then
       cat <<EOF
 To view TensorBoard inside Colab, run this in a Python cell:
+%load_ext tensorboard
+%tensorboard --logdir /content/edgeWash/logs --host 0.0.0.0 --port $TB_PORT
+or:
 from google.colab import output
 output.serve_kernel_port_as_window($TB_PORT)
 EOF
@@ -249,7 +267,10 @@ process_dataset() {
   fi
 
   if [[ "$SKIP_DOWNLOAD" == "false" ]]; then
-    log "Downloading $name ..."
+    if [[ "$SKIP_DOWNLOAD_IF_PRESENT" == "true" && -d "$PROJECT_ROOT/datasets/raw/$name" ]]; then
+      log "Raw data for $name already present; skipping download."
+    else
+      log "Downloading $name ..."
     DATASET_NAME="$name" $PYTHON - <<'PY'
 import os, sys
 import download_datasets as dl
@@ -260,6 +281,8 @@ elif name == "pskus":
     ok = dl.download_pskus_dataset()
 elif name == "metc":
     ok = dl.download_metc_dataset()
+elif name == "synthetic_blender_rozakar":
+    ok = dl.download_synthetic_blender_rozakar()
 else:
     raise SystemExit(f"Unknown dataset {name}")
 if not ok:
@@ -268,6 +291,7 @@ status = dl.verify_datasets()
 info = status.get(name, {})
 print(f"{name}: exists={info.get('exists')} files={info.get('num_files')} path={info.get('path')}")
 PY
+    fi
   else
     log "Skipping download (SKIP_DOWNLOAD=true)"
   fi
@@ -291,6 +315,28 @@ for k, v in result.items():
 PY
   else
     log "Skipping preprocessing (SKIP_PREPROCESS=true)"
+  fi
+
+  if [[ "$SANITY_CHECK" == "true" ]]; then
+    log "Sanity check: class distribution"
+    TRAIN_CSV_PATH="$TRAIN_CSV_PATH" $PYTHON - <<'PY'
+import os
+import pandas as pd
+from pathlib import Path
+train_csv = Path(os.environ["TRAIN_CSV_PATH"])
+if not train_csv.exists():
+    print("Missing train.csv; skipping sanity check")
+    raise SystemExit(0)
+df = pd.read_csv(train_csv)
+col = "class_name" if "class_name" in df.columns else "class_id"
+counts = df[col].value_counts()
+print(counts.to_string())
+if len(counts) == 1:
+    print("WARNING: single-class dataset; check labeling.")
+if "Other" in counts.index:
+    if counts["Other"] / len(df) > 0.95:
+        print("WARNING: 'Other' exceeds 95% of samples.")
+PY
   fi
 
   run_train_eval "$name" && TRAIN_EVAL_RAN=true
