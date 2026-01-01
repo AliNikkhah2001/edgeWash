@@ -183,7 +183,8 @@ class FrameDataGenerator(keras.utils.Sequence):
         num_classes: int = NUM_CLASSES,
         shuffle: bool = True,
         augment: bool = False,
-        augment_multiplier: int = 1
+        augment_multiplier: int = 1,
+        augment_prob: float = 1.0
     ):
         """
         Initialize frame data generator.
@@ -203,6 +204,7 @@ class FrameDataGenerator(keras.utils.Sequence):
         self.shuffle = shuffle
         self.augment = augment
         self.augment_multiplier = max(1, augment_multiplier)
+        self.augment_prob = max(0.0, min(1.0, augment_prob))
         self.consistent_video_aug = CONSISTENT_VIDEO_AUG and "video_id" in self.df.columns
         self.video_aug_params = {}
         self.indices = np.arange(len(self.df))
@@ -268,7 +270,7 @@ class FrameDataGenerator(keras.utils.Sequence):
                 img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
             # Apply augmentation if enabled
-            if self.augment:
+            if self.augment and (self.augment_prob >= 1.0 or np.random.rand() < self.augment_prob):
                 video_id = row.get("video_id") if self.consistent_video_aug else None
                 params = self._get_aug_params(video_id)
                 img = _apply_aug(img, params)
@@ -300,7 +302,8 @@ class SequenceDataGenerator(keras.utils.Sequence):
         num_classes: int = NUM_CLASSES,
         shuffle: bool = True,
         augment: bool = False,
-        augment_multiplier: int = 1
+        augment_multiplier: int = 1,
+        augment_prob: float = 1.0
     ):
         """
         Initialize sequence data generator.
@@ -322,6 +325,7 @@ class SequenceDataGenerator(keras.utils.Sequence):
         self.shuffle = shuffle
         self.augment = augment
         self.augment_multiplier = max(1, augment_multiplier)
+        self.augment_prob = max(0.0, min(1.0, augment_prob))
         self.consistent_video_aug = CONSISTENT_VIDEO_AUG and "video_id" in self.df.columns
         self.video_aug_params = {}
         
@@ -406,8 +410,9 @@ class SequenceDataGenerator(keras.utils.Sequence):
         
         for i, idx in enumerate(indices):
             frame_indices, class_id, video_id = self.sequences[idx]
-            params = self._get_aug_params(video_id) if self.augment else None
-            if self.augment and params.get("reverse_sequence"):
+            apply_aug = self.augment and (self.augment_prob >= 1.0 or np.random.rand() < self.augment_prob)
+            params = self._get_aug_params(video_id) if apply_aug else None
+            if apply_aug and params.get("reverse_sequence"):
                 frame_indices = list(reversed(frame_indices))
             
             # Load sequence of frames
@@ -422,7 +427,7 @@ class SequenceDataGenerator(keras.utils.Sequence):
                     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
                 
                 # Apply augmentation if enabled
-                if self.augment:
+                if apply_aug:
                     img = _apply_aug(img, params)
                 
                 # Normalize

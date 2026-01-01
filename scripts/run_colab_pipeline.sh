@@ -35,12 +35,29 @@ BATCH_MOBILENET=${BATCH_MOBILENET:-64}
 BATCH_SEQUENCE=${BATCH_SEQUENCE:-32}
 AUTO_TUNE_BATCH=${AUTO_TUNE_BATCH:-true}
 TB_PORT=${TB_PORT:-6008}
+OPTIMIZER_NAME=${OPTIMIZER_NAME:-adamw}
+WEIGHT_DECAY=${WEIGHT_DECAY:-1e-4}
+LABEL_SMOOTHING=${LABEL_SMOOTHING:-0.1}
+RESNET50_SCHEDULE=${RESNET50_SCHEDULE:-true}
+RESNET50_STAGE0_EPOCHS=${RESNET50_STAGE0_EPOCHS:-5}
+RESNET50_STAGE1_EPOCHS=${RESNET50_STAGE1_EPOCHS:-10}
+RESNET50_STAGE2_EPOCHS=${RESNET50_STAGE2_EPOCHS:-20}
+RESNET50_STAGE0_LR=${RESNET50_STAGE0_LR:-3e-4}
+RESNET50_STAGE1_LR=${RESNET50_STAGE1_LR:-1e-4}
+RESNET50_STAGE2_LR=${RESNET50_STAGE2_LR:-3e-5}
+RESNET50_STAGE0_WD=${RESNET50_STAGE0_WD:-1e-4}
+RESNET50_STAGE1_WD=${RESNET50_STAGE1_WD:-1e-4}
+RESNET50_STAGE2_WD=${RESNET50_STAGE2_WD:-5e-5}
+EVAL_TEST_EACH_EPOCH=${EVAL_TEST_EACH_EPOCH:-true}
+CONFUSION_NORMALIZE=${CONFUSION_NORMALIZE:-false}
 SANITY_CHECK=${SANITY_CHECK:-true}
 SKIP_DOWNLOAD=${SKIP_DOWNLOAD:-false}
 SKIP_PREPROCESS=${SKIP_PREPROCESS:-false}
 SKIP_TRAIN=${SKIP_TRAIN:-false}
 SKIP_EVAL=${SKIP_EVAL:-false}
 RESUME_FROM=${RESUME_FROM:-}
+CONTINUE_FROM_PREV=${CONTINUE_FROM_PREV:-false}
+CONTINUE_MODELS=${CONTINUE_MODELS:-}
 TRAIN_CSV_OVERRIDE=${TRAIN_CSV_OVERRIDE:-}
 VAL_CSV_OVERRIDE=${VAL_CSV_OVERRIDE:-}
 TEST_CSV_OVERRIDE=${TEST_CSV_OVERRIDE:-}
@@ -159,6 +176,22 @@ if [[ ${#DATASET_LIST[@]} -eq 0 ]]; then
   DATASET_LIST=("kaggle")
 fi
 
+declare -A LAST_MODEL_PATHS=()
+
+model_in_list() {
+  local needle="$1"
+  local haystack="$2"
+  if [[ -z "$haystack" ]]; then
+    return 0
+  fi
+  for item in $(echo "$haystack" | tr ',' ' '); do
+    if [[ "$item" == "$needle" ]]; then
+      return 0
+    fi
+  done
+  return 1
+}
+
 cleanup_dataset() {
   local name="$1"
   log "Cleaning up dataset artifacts for $name to save space..."
@@ -184,20 +217,37 @@ run_train_eval() {
   for MODEL in $TRAIN_MODELS; do
     MODEL_LOWER=$(echo "$MODEL" | tr '[:upper:]' '[:lower:]')
     case "$MODEL_LOWER" in
-      mobilenetv2|resnet50|efficientnetb0) BATCH="$BATCH_MOBILENET" ;;
+      mobilenetv2|resnet50|resnet101|resnet152|efficientnetb0|efficientnetb3|efficientnetv2b0|convnext_tiny|vit_b16) BATCH="$BATCH_MOBILENET" ;;
       3d_cnn) BATCH=12 ;;
       lstm|gru) BATCH="$BATCH_SEQUENCE" ;;
       *) log "Unknown model: $MODEL_LOWER"; return 1 ;;
     esac
+    RESUME_FROM_MODEL="$RESUME_FROM"
+    if [[ -z "$RESUME_FROM_MODEL" && "$CONTINUE_FROM_PREV" == "true" ]]; then
+      if model_in_list "$MODEL_LOWER" "$CONTINUE_MODELS"; then
+        RESUME_FROM_MODEL="${LAST_MODEL_PATHS[$MODEL_LOWER]:-}"
+        if [[ -n "$RESUME_FROM_MODEL" ]]; then
+          log "Resuming $MODEL_LOWER from $RESUME_FROM_MODEL"
+        fi
+      fi
+    fi
     log "Training $MODEL_LOWER on $name_label (epochs=$EPOCHS batch=$BATCH lr=$LEARNING_RATE)..."
-    MODEL_TYPE="$MODEL_LOWER" BATCH_SIZE="$BATCH" EPOCHS="$EPOCHS" LR="$LEARNING_RATE" RESUME_FROM_ENV="$RESUME_FROM" \
-    TRAIN_CSV_ENV="$TRAIN_CSV_PATH" VAL_CSV_ENV="$VAL_CSV_PATH" $PYTHON - <<'PY'
+    MODEL_TYPE="$MODEL_LOWER" BATCH_SIZE="$BATCH" EPOCHS="$EPOCHS" LR="$LEARNING_RATE" RESUME_FROM_ENV="$RESUME_FROM_MODEL" \
+    TRAIN_CSV_ENV="$TRAIN_CSV_PATH" VAL_CSV_ENV="$VAL_CSV_PATH" TEST_CSV_ENV="$TEST_CSV_PATH" \
+    OPTIMIZER_NAME="$OPTIMIZER_NAME" WEIGHT_DECAY="$WEIGHT_DECAY" LABEL_SMOOTHING="$LABEL_SMOOTHING" \
+    RESNET50_SCHEDULE="$RESNET50_SCHEDULE" RESNET50_STAGE0_EPOCHS="$RESNET50_STAGE0_EPOCHS" \
+    RESNET50_STAGE1_EPOCHS="$RESNET50_STAGE1_EPOCHS" RESNET50_STAGE2_EPOCHS="$RESNET50_STAGE2_EPOCHS" \
+    RESNET50_STAGE0_LR="$RESNET50_STAGE0_LR" RESNET50_STAGE1_LR="$RESNET50_STAGE1_LR" RESNET50_STAGE2_LR="$RESNET50_STAGE2_LR" \
+    RESNET50_STAGE0_WD="$RESNET50_STAGE0_WD" RESNET50_STAGE1_WD="$RESNET50_STAGE1_WD" RESNET50_STAGE2_WD="$RESNET50_STAGE2_WD" \
+    EVAL_TEST_EACH_EPOCH="$EVAL_TEST_EACH_EPOCH" CONFUSION_NORMALIZE="$CONFUSION_NORMALIZE" \
+    $PYTHON - <<'PY'
 import os, json
 from pathlib import Path
 import train
 model_type = os.environ["MODEL_TYPE"]
 train_csv = Path(os.environ["TRAIN_CSV_ENV"])
 val_csv = Path(os.environ["VAL_CSV_ENV"])
+test_csv = Path(os.environ["TEST_CSV_ENV"]) if os.environ.get("TEST_CSV_ENV") else None
 resume = os.environ.get("RESUME_FROM_ENV") or None
 if not train_csv.exists() or not val_csv.exists():
     raise SystemExit("Missing processed CSVs; run preprocessing first.")
@@ -205,6 +255,7 @@ result = train.train_model(
     model_type=model_type,
     train_csv=train_csv,
     val_csv=val_csv,
+    test_csv=test_csv if test_csv and test_csv.exists() else None,
     batch_size=int(os.environ["BATCH_SIZE"]),
     epochs=int(os.environ["EPOCHS"]),
     learning_rate=float(os.environ["LR"]),
@@ -224,6 +275,14 @@ PY
     if [[ -z "$FINAL_MODEL_PATH" ]]; then
       log "Final model for $MODEL_LOWER not found; skipping evaluation."
       continue
+    fi
+    MODEL_DIR="$PROJECT_ROOT/models/${name_label}"
+    mkdir -p "$MODEL_DIR"
+    cp "$FINAL_MODEL_PATH" "$MODEL_DIR/${MODEL_LOWER}_final.keras"
+    if [[ "$CONTINUE_FROM_PREV" == "true" ]]; then
+      if model_in_list "$MODEL_LOWER" "$CONTINUE_MODELS"; then
+        LAST_MODEL_PATHS["$MODEL_LOWER"]="$MODEL_DIR/${MODEL_LOWER}_final.keras"
+      fi
     fi
     if [[ "$SKIP_EVAL" == "true" ]]; then
       log "SKIP_EVAL=true; skipping evaluation for $MODEL_LOWER"

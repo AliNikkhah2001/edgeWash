@@ -92,6 +92,19 @@ CLASS_NAMES = [
     'Step6_Fingertips'         # Class 6
 ]
 
+# PSKUS movement codes (0-7) mapped into our 0-6 class set.
+# PSKUS code 7 = "turning off faucet" -> map to Other (0).
+PSKUS_CODE_MAPPING = {
+    0: 0,
+    1: 1,
+    2: 2,
+    3: 3,
+    4: 4,
+    5: 5,
+    6: 6,
+    7: 0
+}
+
 # Class mapping for Kaggle dataset
 KAGGLE_CLASS_MAPPING = {
     '0': 0,
@@ -122,6 +135,23 @@ REDUCE_LR_PATIENCE = 5  # ReduceLROnPlateau patience
 MIN_LR = 1e-7           # Minimum learning rate
 AUGMENT_MULTIPLIER = 50  # how many virtual epochs via augmentation (on-the-fly)
 ENABLE_SHADOW_AUG = True
+
+# Optimizer + loss
+OPTIMIZER_NAME = "adamw"
+WEIGHT_DECAY = 1e-4
+LABEL_SMOOTHING = 0.1
+
+# ResNet50 fine-tuning schedule
+RESNET50_SCHEDULE = True
+RESNET50_STAGE0_EPOCHS = 5
+RESNET50_STAGE1_EPOCHS = 10
+RESNET50_STAGE2_EPOCHS = 20
+RESNET50_STAGE0_LR = 3e-4
+RESNET50_STAGE1_LR = 1e-4
+RESNET50_STAGE2_LR = 3e-5
+RESNET50_STAGE0_WD = 1e-4
+RESNET50_STAGE1_WD = 1e-4
+RESNET50_STAGE2_WD = 5e-5
 
 # Data split ratios
 TRAIN_RATIO = 0.7
@@ -177,6 +207,66 @@ MODEL_CONFIGS = {
         'freeze_backbone': True,
         'classifier_units': [256],
         'dropout_rate': 0.4,
+        'input_shape': (*IMG_SIZE, 3)
+    },
+    'efficientnetb3': {
+        'name': 'EfficientNetB3 Frame Classifier',
+        'type': 'frame-based',
+        'backbone': 'EfficientNetB3',
+        'pretrained_weights': 'imagenet',
+        'freeze_backbone': True,
+        'classifier_units': [512, 256],
+        'dropout_rate': 0.4,
+        'input_shape': (*IMG_SIZE, 3)
+    },
+    'efficientnetv2b0': {
+        'name': 'EfficientNetV2B0 Frame Classifier',
+        'type': 'frame-based',
+        'backbone': 'EfficientNetV2B0',
+        'pretrained_weights': 'imagenet',
+        'freeze_backbone': True,
+        'classifier_units': [512, 256],
+        'dropout_rate': 0.3,
+        'input_shape': (*IMG_SIZE, 3)
+    },
+    'resnet101': {
+        'name': 'ResNet101 Frame Classifier',
+        'type': 'frame-based',
+        'backbone': 'ResNet101',
+        'pretrained_weights': 'imagenet',
+        'freeze_backbone': True,
+        'classifier_units': [512, 256],
+        'dropout_rate': 0.5,
+        'input_shape': (*IMG_SIZE, 3)
+    },
+    'resnet152': {
+        'name': 'ResNet152 Frame Classifier',
+        'type': 'frame-based',
+        'backbone': 'ResNet152',
+        'pretrained_weights': 'imagenet',
+        'freeze_backbone': True,
+        'classifier_units': [512, 256],
+        'dropout_rate': 0.5,
+        'input_shape': (*IMG_SIZE, 3)
+    },
+    'convnext_tiny': {
+        'name': 'ConvNeXtTiny Frame Classifier',
+        'type': 'frame-based',
+        'backbone': 'ConvNeXtTiny',
+        'pretrained_weights': 'imagenet',
+        'freeze_backbone': True,
+        'classifier_units': [512],
+        'dropout_rate': 0.4,
+        'input_shape': (*IMG_SIZE, 3)
+    },
+    'vit_b16': {
+        'name': 'ViT-B16 Frame Classifier (requires keras-cv)',
+        'type': 'frame-based',
+        'backbone': 'ViT_B16',
+        'pretrained_weights': 'imagenet',
+        'freeze_backbone': True,
+        'classifier_units': [512],
+        'dropout_rate': 0.3,
         'input_shape': (*IMG_SIZE, 3)
     },
     'lstm': {

@@ -27,6 +27,7 @@ from config import (
     NUM_CLASSES,
     CLASS_NAMES,
     KAGGLE_CLASS_MAPPING,
+    PSKUS_CODE_MAPPING,
     TRAIN_RATIO,
     VAL_RATIO,
     TEST_RATIO,
@@ -250,6 +251,13 @@ def _majority_vote(labels: List[int], total_movements: int) -> int:
     return best
 
 
+def _normalize_pskus_code(code: int) -> int:
+    try:
+        return PSKUS_CODE_MAPPING.get(int(code), 0)
+    except (TypeError, ValueError):
+        return 0
+
+
 def _discount_reaction_indeterminacy(labels: List[int], reaction_frames: int) -> List[int]:
     new_labels = [u for u in labels]
     n = len(labels) - 1
@@ -353,7 +361,7 @@ def _frame_labels_from_annotations(
         frame_is_washing_any = any(frame_annotations[a][0] for a in range(num_annotators))
         frame_is_washing_all = all(frame_annotations[a][0] for a in range(num_annotators))
         frame_codes = [frame_annotations[a][1] for a in range(num_annotators)]
-        frame_codes = [0 if code == 7 else code for code in frame_codes]
+        frame_codes = [_normalize_pskus_code(code) for code in frame_codes]
 
         if frame_is_washing_all:
             frame_is_washing = 2

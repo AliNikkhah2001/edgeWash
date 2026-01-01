@@ -86,7 +86,11 @@ def evaluate_model(
     
     # Create data generator
     logger.info("\nCreating data generator...")
-    if model_type in ['mobilenetv2', 'resnet50', 'efficientnetb0']:
+    if model_type in [
+        'mobilenetv2', 'resnet50', 'resnet101', 'resnet152',
+        'efficientnetb0', 'efficientnetb3', 'efficientnetv2b0',
+        'convnext_tiny', 'vit_b16'
+    ]:
         _, _, test_gen = create_frame_generators(
             test_df, test_df, test_df,
             batch_size=batch_size
@@ -329,7 +333,12 @@ if __name__ == "__main__":
         '--model-type',
         type=str,
         required=True,
-        choices=['mobilenetv2', 'resnet50', 'efficientnetb0', 'lstm', 'gru', '3d_cnn'],
+        choices=[
+            'mobilenetv2', 'resnet50', 'resnet101', 'resnet152',
+            'efficientnetb0', 'efficientnetb3', 'efficientnetv2b0',
+            'convnext_tiny', 'vit_b16',
+            'lstm', 'gru', '3d_cnn'
+        ],
         help='Model architecture'
     )
     parser.add_argument(
