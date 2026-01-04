@@ -17,6 +17,7 @@ datasets/**
 !datasets/*.sh
 !datasets/**/*.sh
 !datasets/.gitkeep
+inference copy/
 **/data/
 **/raw/
 **/outputs/
