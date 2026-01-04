@@ -1,7 +1,7 @@
 # Handwashing Research Hub
 
 Aggregated code, papers, datasets, models, and experiment ideas for automated handwashing assessment.
-_Last updated: 2026-01-04 21:24 UTC_
+_Last updated: 2026-01-04 21:37 UTC_
 
 ## Structure
 - `code/`: cloned codebases and pipelines
@@ -10,6 +10,56 @@ _Last updated: 2026-01-04 21:24 UTC_
 - `models/`: exported weights and model cards
 - `evaluation/`: benchmarks and result artifacts
 - `ideas/`: future experiment notes and design sketches
+
+## Experiments and Results (this repo)
+These runs were executed from the training and inference notebooks in this repo. Artifacts are saved under `Runs/`, `assets/experiments/`, and `assets/gifs/`.
+
+### Training pipeline (common steps)
+- Download raw datasets (Kaggle WHO6, PSKUS, METC) and normalize labels to 7 classes.
+- Extract frames or sequences at a fixed stride and resize to `224x224`.
+- Split into train/val/test with class stratification where possible.
+- Apply offline augmentation (rotation, shift, zoom, brightness/contrast, flips) plus optional on-the-fly aug.
+- Train baseline MobileNetV2 (frame) and LSTM (sequence) models; evaluate on test and test+aug.
+
+### Run summary
+| Run | Dataset(s) | Model | Test acc | Test+aug acc | Last epoch train/val acc |
+| --- | --- | --- | --- | --- | --- |
+| `handwash-training-mobilenet-kaggle-metc-100-epoch` | Kaggle WHO6 | MobileNetV2 (frame) | 0.9231 | 0.8492 | 0.7401 / 0.9238 |
+| `handwash-training-mobilenet-kaggle-pskus-100-epoch` | Kaggle WHO6 + PSKUS | MobileNetV2 (frame) | 0.9138 | n/a | 0.6978 / 0.9176 |
+| `handwash-metc-250` | METC | MobileNetV2 (frame) | 0.5235 | 0.4732 | 0.7495 / 0.5674 |
+| `handwash_Recurrent_Heavy_augmented` | Kaggle WHO6 | LSTM (sequence) | 0.8487 | 0.5942 | 0.9343 / 0.8956 |
+
+Notes:
+- Test metrics are the reported `compile_metrics` values from the run logs (top-1 accuracy).
+- METC remains the hardest split with a large train/val gap; confusion matrices show strong bias to "Other".
+- PSKUS confusion matrices were not saved in that run output; only curves are included here.
+
+### Sample outputs (GIF)
+![Raw inference overlay](assets/gifs/HandWash_006_A_11_G_01_raw_pred.gif)
+![Augmented inference overlay](assets/gifs/HandWash_006_A_11_G_01_aug_pred.gif)
+
+### Training curves
+![Kaggle MobileNetV2 training curves](assets/experiments/mobilenet_kaggle_metc_100_img1.png)
+![Kaggle+PSKUS MobileNetV2 training curves](assets/experiments/mobilenet_kaggle_pskus_100_img1.png)
+![METC MobileNetV2 training curves](assets/experiments/mobilenet_metc_250_img1.png)
+![Kaggle LSTM training curves](assets/experiments/recurrent_heavy_aug_img1.png)
+
+### Confusion matrices
+Kaggle MobileNetV2 (test and test+aug)
+![Kaggle MobileNetV2 test](assets/experiments/mobilenet_kaggle_metc_100_img3.png)
+![Kaggle MobileNetV2 test+aug](assets/experiments/mobilenet_kaggle_metc_100_img4.png)
+
+Kaggle MobileNetV2 (frame and frame+aug)
+![Kaggle MobileNetV2 frame](assets/experiments/mobilenet_kaggle_metc_100_img5.png)
+![Kaggle MobileNetV2 frame+aug](assets/experiments/mobilenet_kaggle_metc_100_img6.png)
+
+METC MobileNetV2 (test and test+aug)
+![METC MobileNetV2 test](assets/experiments/mobilenet_metc_250_img3.png)
+![METC MobileNetV2 test+aug](assets/experiments/mobilenet_metc_250_img4.png)
+
+Kaggle LSTM (test and test+aug)
+![Kaggle LSTM test](assets/experiments/recurrent_heavy_aug_img3.png)
+![Kaggle LSTM test+aug](assets/experiments/recurrent_heavy_aug_img4.png)
 
 ## Codebases
 - [ ] **TensorFlow Handwash Monitoring Demo** (`code/Handwash-Monitoring`) — tags: depth, cnn, dispenser-detection, tensorflow — source: https://github.com/SidhantSarkar/Handwash-Monitoring
