@@ -1,0 +1,2 @@
+split,augmentation,accuracy,precision_weighted,recall_weighted,f1_weighted,precision_macro,recall_macro,f1_macro,top2_accuracy
+val,zoom,0.8965277777777778,0.9212276168457318,0.8965277777777778,0.8944323968640321,0.9328787083989043,0.8533694727891156,0.8738441875397657,1.0

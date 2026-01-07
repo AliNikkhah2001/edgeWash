@@ -1,0 +1,2 @@
+split,augmentation,accuracy,precision_weighted,recall_weighted,f1_weighted,precision_macro,recall_macro,f1_macro,top2_accuracy
+test,shift,0.9979166666666667,0.9979441997063143,0.9979166666666667,0.9979112439345736,0.9981120201384518,0.9966517857142857,0.9973557725413505,1.0

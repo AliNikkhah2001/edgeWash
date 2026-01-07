@@ -1,0 +1,2 @@
+split,augmentation,accuracy,precision_weighted,recall_weighted,f1_weighted,precision_macro,recall_macro,f1_macro,top2_accuracy
+train,rotation,0.8505859375,0.8653505835836711,0.8505859375,0.8427590188016794,0.8494861029085901,0.8090702947845806,0.811890248398047,0.923828125

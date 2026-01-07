@@ -1,0 +1,2 @@
+split,augmentation,accuracy,precision_weighted,recall_weighted,f1_weighted,precision_macro,recall_macro,f1_macro,top2_accuracy
+val,shadow,0.9840277777777777,0.9847726962118107,0.9840277777777777,0.9838504957670569,0.9877637737416336,0.9787946428571429,0.9825769581056409,1.0

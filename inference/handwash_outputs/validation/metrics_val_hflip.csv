@@ -1,0 +1,2 @@
+split,augmentation,accuracy,precision_weighted,recall_weighted,f1_weighted,precision_macro,recall_macro,f1_macro,top2_accuracy
+val,hflip,0.96875,0.972147763846856,0.96875,0.9663170236853306,0.9676981038848743,0.9497767857142857,0.952447640179655,0.9979166666666667

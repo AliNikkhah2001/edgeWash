@@ -1,0 +1,2 @@
+split,augmentation,accuracy,precision_weighted,recall_weighted,f1_weighted,precision_macro,recall_macro,f1_macro,top2_accuracy
+train,zoom,0.9306640625,0.9412687003105704,0.9306640625,0.9293349033958322,0.9173298941292133,0.9198696145124716,0.9104323297301319,0.9580078125
