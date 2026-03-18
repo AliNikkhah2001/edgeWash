@@ -80,16 +80,16 @@ SEQUENCE_LENGTH = 16   # Number of frames for temporal models
 FRAME_SKIP = 2         # Extract every Nth frame (1=all, 2=half)
 FRAME_SKIP_OPTIONS = [1, 2, 4]
 
-# Classes
-NUM_CLASSES = 7
+NUM_CLASSES = 8
 CLASS_NAMES = [
-    'Other',                    # Class 0
-    'Step1_PalmToPalm',        # Class 1
-    'Step2_PalmOverDorsum',    # Class 2
-    'Step3_InterlacedFingers', # Class 3
-    'Step4_BackOfFingers',     # Class 4
-    'Step5_ThumbRub',          # Class 5
-    'Step6_Fingertips'         # Class 6
+    'No_Action',                # Class 0
+    'Soaping',                  # Class 1
+    'Step_1_PalmToPalm',        # Class 2
+    'Step_2_PalmOverDorsum',    # Class 3
+    'Step_3_InterlacedFingers', # Class 4
+    'Step_4_BackOfFingers',     # Class 5
+    'Step_5_ThumbRub',          # Class 6
+    'Step_6_Fingertips'         # Class 7
 ]
 
 # PSKUS movement codes (0-7) mapped into our 0-6 class set.

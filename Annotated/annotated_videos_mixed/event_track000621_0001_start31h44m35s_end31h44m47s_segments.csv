@@ -1,0 +1,3 @@
+label,start_s,end_s,duration_s,mean_confidence
+Step4_BackOfFingers,0.000000,0.400000,0.400000,0.456788
+Step5_ThumbRub,0.500000,2.700000,2.200000,0.457280

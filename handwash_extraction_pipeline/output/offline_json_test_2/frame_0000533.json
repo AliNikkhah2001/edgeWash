@@ -1,0 +1,54 @@
+{
+  "source_video": "record_2_CAM_D.mkv",
+  "source_frame": 533,
+  "timestamp_sec": 26.65,
+  "frame_w": 1296,
+  "frame_h": 972,
+  "num_detections": 4,
+  "detections": [
+    {
+      "cls_id": 2,
+      "cls_name": "head",
+      "score": 0.9961,
+      "box": {
+        "x1": 824.4,
+        "y1": 115.6,
+        "x2": 940.0,
+        "y2": 224.6
+      }
+    },
+    {
+      "cls_id": 3,
+      "cls_name": "human",
+      "score": 0.9961,
+      "box": {
+        "x1": 4.0,
+        "y1": 187.0,
+        "x2": 167.5,
+        "y2": 461.9
+      }
+    },
+    {
+      "cls_id": 3,
+      "cls_name": "human",
+      "score": 0.9961,
+      "box": {
+        "x1": 768.9,
+        "y1": 122.2,
+        "x2": 975.1,
+        "y2": 558.2
+      }
+    },
+    {
+      "cls_id": 3,
+      "cls_name": "human",
+      "score": 0.875,
+      "box": {
+        "x1": 436.0,
+        "y1": -4.4,
+        "x2": 565.6,
+        "y2": 269.6
+      }
+    }
+  ]
+}

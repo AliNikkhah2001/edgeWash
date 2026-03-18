@@ -1,0 +1,5 @@
+label,start_s,end_s,duration_s,mean_confidence
+Step2_PalmOverDorsum,0.000000,0.100000,0.100000,0.450538
+Step5_ThumbRub,0.200000,1.300000,1.100000,0.503430
+Step2_PalmOverDorsum,1.400000,1.600000,0.200000,0.350409
+Step4_BackOfFingers,1.700000,5.800000,4.100000,0.660189

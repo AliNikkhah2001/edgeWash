@@ -1,0 +1,4 @@
+label,start_s,end_s,duration_s,mean_confidence
+Step2_PalmOverDorsum,0.000000,0.100000,0.100000,0.475381
+Step4_BackOfFingers,0.200000,1.000000,0.800000,0.460654
+Step2_PalmOverDorsum,1.100000,1.800000,0.700000,0.524139

@@ -1,0 +1,32 @@
+{
+  "source_video": "record_2_CAM_D.mkv",
+  "source_frame": 691,
+  "timestamp_sec": 34.55,
+  "frame_w": 1296,
+  "frame_h": 972,
+  "num_detections": 2,
+  "detections": [
+    {
+      "cls_id": 3,
+      "cls_name": "human",
+      "score": 0.9727,
+      "box": {
+        "x1": 2.5,
+        "y1": 220.1,
+        "x2": 186.4,
+        "y2": 438.1
+      }
+    },
+    {
+      "cls_id": 3,
+      "cls_name": "human",
+      "score": 0.5703,
+      "box": {
+        "x1": 1.5,
+        "y1": 349.0,
+        "x2": 261.6,
+        "y2": 657.3
+      }
+    }
+  ]
+}

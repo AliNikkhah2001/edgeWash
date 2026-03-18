@@ -1,0 +1,5 @@
+timestamp_s,pred_label,confidence,prob_Other,prob_Step1_PalmToPalm,prob_Step2_PalmOverDorsum,prob_Step3_InterlacedFingers,prob_Step4_BackOfFingers,prob_Step5_ThumbRub,prob_Step6_Fingertips
+0.000000,Step4_BackOfFingers,0.475714,0.026322,0.001479,0.172457,0.009163,0.475714,0.288527,0.026338
+0.100000,Step4_BackOfFingers,0.515809,0.019772,0.001227,0.168917,0.008532,0.515809,0.262602,0.023142
+0.200000,Step4_BackOfFingers,0.540873,0.015660,0.001250,0.148710,0.007568,0.540873,0.264795,0.021145
+0.300000,Step4_BackOfFingers,0.531293,0.014396,0.001211,0.157979,0.007408,0.531293,0.265204,0.022509

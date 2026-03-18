@@ -1,0 +1,87 @@
+{
+  "source_video": "record_2_CAM_D.mkv",
+  "source_frame": 217,
+  "timestamp_sec": 10.85,
+  "frame_w": 1296,
+  "frame_h": 972,
+  "num_detections": 7,
+  "detections": [
+    {
+      "cls_id": 2,
+      "cls_name": "head",
+      "score": 0.9961,
+      "box": {
+        "x1": 153.9,
+        "y1": 343.9,
+        "x2": 299.7,
+        "y2": 498.0
+      }
+    },
+    {
+      "cls_id": 2,
+      "cls_name": "head",
+      "score": 0.9961,
+      "box": {
+        "x1": 673.9,
+        "y1": 405.6,
+        "x2": 837.4,
+        "y2": 599.3
+      }
+    },
+    {
+      "cls_id": 3,
+      "cls_name": "human",
+      "score": 0.9961,
+      "box": {
+        "x1": 161.1,
+        "y1": 349.5,
+        "x2": 486.9,
+        "y2": 658.8
+      }
+    },
+    {
+      "cls_id": 3,
+      "cls_name": "human",
+      "score": 0.9844,
+      "box": {
+        "x1": 641.7,
+        "y1": 391.6,
+        "x2": 872.9,
+        "y2": 827.5
+      }
+    },
+    {
+      "cls_id": 3,
+      "cls_name": "human",
+      "score": 0.9805,
+      "box": {
+        "x1": 618.9,
+        "y1": 4.5,
+        "x2": 764.7,
+        "y2": 350.0
+      }
+    },
+    {
+      "cls_id": 1,
+      "cls_name": "handwash",
+      "score": 0.9414,
+      "box": {
+        "x1": 651.0,
+        "y1": 666.9,
+        "x2": 881.4,
+        "y2": 839.7
+      }
+    },
+    {
+      "cls_id": 3,
+      "cls_name": "human",
+      "score": 0.3047,
+      "box": {
+        "x1": 691.1,
+        "y1": -4.1,
+        "x2": 875.1,
+        "y2": 384.7
+      }
+    }
+  ]
+}

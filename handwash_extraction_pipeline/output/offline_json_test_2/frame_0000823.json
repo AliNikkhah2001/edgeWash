@@ -1,0 +1,87 @@
+{
+  "source_video": "record_2_CAM_D.mkv",
+  "source_frame": 823,
+  "timestamp_sec": 41.15,
+  "frame_w": 1296,
+  "frame_h": 972,
+  "num_detections": 7,
+  "detections": [
+    {
+      "cls_id": 2,
+      "cls_name": "head",
+      "score": 0.9961,
+      "box": {
+        "x1": 930.6,
+        "y1": 77.4,
+        "x2": 1045.8,
+        "y2": 174.2
+      }
+    },
+    {
+      "cls_id": 2,
+      "cls_name": "head",
+      "score": 0.9961,
+      "box": {
+        "x1": 524.0,
+        "y1": 253.1,
+        "x2": 707.2,
+        "y2": 425.9
+      }
+    },
+    {
+      "cls_id": 3,
+      "cls_name": "human",
+      "score": 0.9961,
+      "box": {
+        "x1": 797.1,
+        "y1": 70.8,
+        "x2": 1028.3,
+        "y2": 459.6
+      }
+    },
+    {
+      "cls_id": 3,
+      "cls_name": "human",
+      "score": 0.9961,
+      "box": {
+        "x1": 498.1,
+        "y1": 241.7,
+        "x2": 757.3,
+        "y2": 677.6
+      }
+    },
+    {
+      "cls_id": 3,
+      "cls_name": "human",
+      "score": 0.9805,
+      "box": {
+        "x1": 580.1,
+        "y1": -5.4,
+        "x2": 786.3,
+        "y2": 341.4
+      }
+    },
+    {
+      "cls_id": 2,
+      "cls_name": "head",
+      "score": 0.5,
+      "box": {
+        "x1": 667.9,
+        "y1": 3.2,
+        "x2": 732.7,
+        "y2": 37.7
+      }
+    },
+    {
+      "cls_id": 3,
+      "cls_name": "human",
+      "score": 0.4297,
+      "box": {
+        "x1": 623.0,
+        "y1": 10.4,
+        "x2": 752.6,
+        "y2": 254.8
+      }
+    }
+  ]
+}

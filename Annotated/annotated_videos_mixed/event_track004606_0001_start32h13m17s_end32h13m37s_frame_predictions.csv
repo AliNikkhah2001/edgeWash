@@ -1,0 +1,4 @@
+timestamp_s,pred_label,confidence,prob_Other,prob_Step1_PalmToPalm,prob_Step2_PalmOverDorsum,prob_Step3_InterlacedFingers,prob_Step4_BackOfFingers,prob_Step5_ThumbRub,prob_Step6_Fingertips
+0.000000,Step5_ThumbRub,0.551387,0.003720,0.002191,0.206102,0.003821,0.217251,0.551387,0.015528
+0.100000,Step5_ThumbRub,0.526678,0.003575,0.001602,0.299227,0.003575,0.153281,0.526678,0.012062
+0.200000,Step5_ThumbRub,0.439211,0.004530,0.001837,0.406792,0.004129,0.134029,0.439211,0.009473

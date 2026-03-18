@@ -1,0 +1,6 @@
+label,start_s,end_s,duration_s,mean_pred_prob
+Step2_PalmOverDorsum,0.000000,1.200000,1.200000,0.780885
+No action,1.400000,2.600000,1.200000,0.000000
+Step2_PalmOverDorsum,2.800000,2.800000,0.000000,0.640876
+No action,3.000000,3.200000,0.200000,0.000000
+Step2_PalmOverDorsum,3.400000,14.200000,10.800000,0.804633
