@@ -1,26 +1,7 @@
-# 📄 Final Report (Integrated)
-
-🚀 This repository now includes a complete **Handwash Step Recognition System**:
-- MobileNetV2 (~99.5% accuracy)
-- WHO step classification (Step 1–6 + Soaping + No Action)
-- Real-time inference UI
-- Full reports (Markdown, PDF, DOCX)
-
-## 📊 Key Results
-![Loss](./images/loss_curve.png)
-![Accuracy](./images/accuracy_curve.png)
-![Confusion Matrix](./images/confusion_matrix.png)
-
-## 🖥️ Demo
-![Demo](./images/demo_ui_1.png)
-
----
-
-
 # Handwashing Research Hub
 
 Aggregated code, papers, datasets, models, and experiment ideas for automated handwashing assessment.
-_Last updated: 2026-01-04 21:38 UTC_
+_Last updated: 2026-03-18 23:29 UTC_
 
 ## Structure
 - `code/`: cloned codebases and pipelines
@@ -31,7 +12,7 @@ _Last updated: 2026-01-04 21:38 UTC_
 - `ideas/`: future experiment notes and design sketches
 
 ## Codebases
-- [x] **TensorFlow Handwash Monitoring Demo** (`code/Handwash-Monitoring`) — tags: depth, cnn, dispenser-detection, tensorflow — source: https://github.com/SidhantSarkar/Handwash-Monitoring
+- [ ] **TensorFlow Handwash Monitoring Demo** (`code/Handwash-Monitoring`) — tags: depth, cnn, dispenser-detection, tensorflow — source: https://github.com/SidhantSarkar/Handwash-Monitoring
 <details>
 <summary>Show details</summary>
 
@@ -126,7 +107,7 @@ python -m scripts.retrain \
 
 </details>
 
-- [x] **EdgeWash WHO Movement Classifier** (`code/edgewash`) — tags: who-steps, edge, classification, vision — source: https://github.com/AliNikkhah2001/edgeWash
+- [ ] **EdgeWash WHO Movement Classifier** (`code/edgewash`) — tags: who-steps, edge, classification, vision — source: https://github.com/AliNikkhah2001/edgeWash
 <details>
 <summary>Show details</summary>
 
@@ -268,7 +249,7 @@ streamlit run tools/edgewash_streamlit_app.py
 
 </details>
 
-- [x] **EDI-Riga Handwashing Movement Classifiers** (`code/edi-riga-handwash`) — tags: hospital, who-steps, classification, pytorch — source: https://github.com/edi-riga/handwash
+- [ ] **EDI-Riga Handwashing Movement Classifiers** (`code/edi-riga-handwash`) — tags: hospital, who-steps, classification, pytorch — source: https://github.com/edi-riga/handwash
 <details>
 <summary>Show details</summary>
 
@@ -345,7 +326,7 @@ python pskus-classify-frames.py
 
 </details>
 
-- [x] **Hand-Wash Compliance Detection with YOLO** (`code/hand-wash-compliance-yolo`) — tags: yolo, compliance-detection, vision — source: https://github.com/dpt-xyz/hand-wash-compliance-yolo
+- [ ] **Hand-Wash Compliance Detection with YOLO** (`code/hand-wash-compliance-yolo`) — tags: yolo, compliance-detection, vision — source: https://github.com/dpt-xyz/hand-wash-compliance-yolo
 <details>
 <summary>Show details</summary>
 
@@ -465,7 +446,7 @@ python detect.py --weights <trained_weights.pt> --source <video_or_webcam>
 
 </details>
 
-- [x] **Synthetic Hand-Washing Data Generation** (`code/synthetic-hand-washing`) — tags: synthetic-data, generation, augmentation — source: https://github.com/r-ozakar/synthetic-hand-washing
+- [ ] **Synthetic Hand-Washing Data Generation** (`code/synthetic-hand-washing`) — tags: synthetic-data, generation, augmentation — source: https://github.com/r-ozakar/synthetic-hand-washing
 <details>
 <summary>Show details</summary>
 
@@ -596,7 +577,7 @@ python pointnet/pointnet_train.py
 
 
 ## Papers
-- [x] **Hand-Hygiene Activity Recognition in Egocentric Video (MMSP 2019)** (`papers/2019-mmsp-chengzhang`) — tags: egocentric-video, handwashing, temporal-detection, two-stream-cnn, food-safety
+- [ ] **Hand-Hygiene Activity Recognition in Egocentric Video (MMSP 2019)** (`papers/2019-mmsp-chengzhang`) — tags: egocentric-video, handwashing, temporal-detection, two-stream-cnn, food-safety
 <details>
 <summary>Show details</summary>
 
@@ -638,7 +619,7 @@ Two-stage egocentric video pipeline that localizes hand-hygiene actions and then
 
 </details>
 
-- [x] **Automated Quality Assessment of Hand Washing Using Deep Learning (2020)** (`papers/2020-arxiv-2011.11383`) — tags: handwashing, quality-assessment, mobilenet, transfer-learning, hospital
+- [ ] **Automated Quality Assessment of Hand Washing Using Deep Learning (2020)** (`papers/2020-arxiv-2011.11383`) — tags: handwashing, quality-assessment, mobilenet, transfer-learning, hospital
 <details>
 <summary>Show details</summary>
 
@@ -921,7 +902,7 @@ arXiv preprint arXiv:2011.11383, 2020
 
 </details>
 
-- [x] **Designing a Computer-Vision Application: Hand-Hygiene Assessment in Open-Room Environment (J. Imaging 2021)** (`papers/2021-jimaging-chengzhang`) — tags: handwashing, deployment, dataset-design, open-world, computer-vision
+- [ ] **Designing a Computer-Vision Application: Hand-Hygiene Assessment in Open-Room Environment (J. Imaging 2021)** (`papers/2021-jimaging-chengzhang`) — tags: handwashing, deployment, dataset-design, open-world, computer-vision
 <details>
 <summary>Show details</summary>
 
@@ -1063,7 +1044,7 @@ Focus on deployment case study and system design
 
 </details>
 
-- [x] **Hand-Washing Video Dataset Annotated According to the WHO Guidelines (Data 2021)** (`papers/2021-mdpi-who-dataset`) — tags: dataset, who-steps, hospital, annotations, public
+- [ ] **Hand-Washing Video Dataset Annotated According to the WHO Guidelines (Data 2021)** (`papers/2021-mdpi-who-dataset`) — tags: dataset, who-steps, hospital, annotations, public
 <details>
 <summary>Show details</summary>
 
@@ -1259,7 +1240,7 @@ cd datasets/pskus-hospital
 
 </details>
 
-- [x] **Hand Hygiene Assessment via Joint Step Segmentation and Key Action Scorer (2023)** (`papers/2022-arxiv-2209.12221`) — tags: handwashing, step-segmentation, quality-assessment, fine-grained-actions, healthcare
+- [ ] **Hand Hygiene Assessment via Joint Step Segmentation and Key Action Scorer (2023)** (`papers/2022-arxiv-2209.12221`) — tags: handwashing, step-segmentation, quality-assessment, fine-grained-actions, healthcare
 <details>
 <summary>Show details</summary>
 
@@ -1401,7 +1382,7 @@ Focus on joint segmentation and quality assessment with transformers
 
 </details>
 
-- [x] **Handwashing Action Detection System for an Autonomous Social Robot (2022)** (`papers/2022-arxiv-2210.15804`) — tags: handwashing, action-detection, robotics, real-time, feedback
+- [ ] **Handwashing Action Detection System for an Autonomous Social Robot (2022)** (`papers/2022-arxiv-2210.15804`) — tags: handwashing, action-detection, robotics, real-time, feedback
 <details>
 <summary>Show details</summary>
 
@@ -1531,7 +1512,7 @@ Focus on vision-based handwashing detection for social robot feedback
 
 </details>
 
-- [x] **Shadow Augmentation for Handwashing Action Recognition (MMSP 2024)** (`papers/2024-mmsp-shadow-augmentation`) — tags: handwashing, data-augmentation, domain-robustness, synthetic-data, shadow-invariance
+- [ ] **Shadow Augmentation for Handwashing Action Recognition (MMSP 2024)** (`papers/2024-mmsp-shadow-augmentation`) — tags: handwashing, data-augmentation, domain-robustness, synthetic-data, shadow-invariance
 <details>
 <summary>Show details</summary>
 
@@ -1636,7 +1617,7 @@ Paper presented at IEEE International Workshop on Multimedia Signal Processing (
 
 </details>
 
-- [x] **Hand Washing Gesture Recognition Using Synthetic Dataset (J. Imaging 2025)** (`papers/2025-mdpi-synthetic`) — tags: synthetic, data-augmentation, rgb, depth, yolo
+- [ ] **Hand Washing Gesture Recognition Using Synthetic Dataset (J. Imaging 2025)** (`papers/2025-mdpi-synthetic`) — tags: synthetic, data-augmentation, rgb, depth, yolo
 <details>
 <summary>Show details</summary>
 
@@ -1821,7 +1802,7 @@ Introduces a 96k-frame synthetic dataset with RGB, depth, and masks covering 8 W
 
 
 ## Datasets
-- [x] **Kaggle Handwash (Resorted to WHO 6+1 Classes)** (`datasets/kaggle-who6`) — tags: who-steps, public, rgb-video, kaggle, 7-classes
+- [ ] **Kaggle Handwash (Resorted to WHO 6+1 Classes)** (`datasets/kaggle-who6`) — tags: who-steps, public, rgb-video, kaggle, 7-classes
 <details>
 <summary>Show details</summary>
 
@@ -1989,7 +1970,7 @@ Resorted mirror: https://github.com/atiselsts/data/raw/master/kaggle-dataset-6cl
 
 </details>
 
-- [x] **METC Lab Handwashing Dataset** (`datasets/metc-lab`) — tags: who-steps, lab, rgb-video, public, zenodo
+- [ ] **METC Lab Handwashing Dataset** (`datasets/metc-lab`) — tags: who-steps, lab, rgb-video, public, zenodo
 <details>
 <summary>Show details</summary>
 
@@ -2150,7 +2131,7 @@ for anno in annotations:
 
 </details>
 
-- [x] **PSKUS Hospital Handwashing Dataset** (`datasets/pskus-hospital`) — tags: who-steps, hospital, rgb-video, public, zenodo
+- [ ] **PSKUS Hospital Handwashing Dataset** (`datasets/pskus-hospital`) — tags: who-steps, hospital, rgb-video, public, zenodo
 <details>
 <summary>Show details</summary>
 
@@ -2359,7 +2340,7 @@ for anno in annotations:
 
 </details>
 
-- [x] **Synthetic Hand-Washing Gesture Dataset (Özakar & Gedikli, 2025)** (`datasets/synthetic-blender-rozakar`) — tags: synthetic, rgb, depth, segmentation, public
+- [ ] **Synthetic Hand-Washing Gesture Dataset (Özakar & Gedikli, 2025)** (`datasets/synthetic-blender-rozakar`) — tags: synthetic, rgb, depth, segmentation, public
 <details>
 <summary>Show details</summary>
 
@@ -2582,18 +2563,18 @@ mask_binary = (mask > 127).astype(np.uint8) * 255
 - Todo (ideas/todo.md)
 
 ## TODOs
-- [x] Data: download & checksum PSKUS, METC, Kaggle WHO6; wire fetch scripts into CI smoke check.
-  - [x] Add lightweight sample slices for quick tests (5 clips per class).
-  - [x] Normalize label maps across datasets (WHO6+Other).
-- [x] Models: train baseline MobileNetV2 (frames) and GRU (clips) on combined hospital+lab; log metrics to `evaluation/`.
-  - [x] Fine-tune two-stream (RGB+OF) with shadow augmentation recipes from 2024 paper.
-  - [x] Benchmark synthetic pretraining (r-ozakar) then finetune on real data.
-- [x] Tracking: implement step-duration tracker (start/end, per-step seconds, coverage) fed by classifier outputs.
-  - [x] Export JSON/CSV compliance report per video.
-  - [x] Add threshold configs (per-step seconds, total duration).
-- [x] UI/Pages: publish GitHub Pages summary and embed latest README; add demo GIFs once tracker exists.
-  - [x] Add model cards for each released checkpoint.
-- [x] Sensors: prototype fusion (wearPuck humidity + IMU) baseline and compare to vision-only triggers.
+- [ ] Data: download & checksum PSKUS, METC, Kaggle WHO6; wire fetch scripts into CI smoke check.
+  - [ ] Add lightweight sample slices for quick tests (5 clips per class).
+  - [ ] Normalize label maps across datasets (WHO6+Other).
+- [ ] Models: train baseline MobileNetV2 (frames) and GRU (clips) on combined hospital+lab; log metrics to `evaluation/`.
+  - [ ] Fine-tune two-stream (RGB+OF) with shadow augmentation recipes from 2024 paper.
+  - [ ] Benchmark synthetic pretraining (r-ozakar) then finetune on real data.
+- [ ] Tracking: implement step-duration tracker (start/end, per-step seconds, coverage) fed by classifier outputs.
+  - [ ] Export JSON/CSV compliance report per video.
+  - [ ] Add threshold configs (per-step seconds, total duration).
+- [ ] UI/Pages: publish GitHub Pages summary and embed latest README; add demo GIFs once tracker exists.
+  - [ ] Add model cards for each released checkpoint.
+- [ ] Sensors: prototype fusion (wearPuck humidity + IMU) baseline and compare to vision-only triggers.
 
 ## Automation
 - `scripts/build_readme.py` regenerates this README from folder metadata.
